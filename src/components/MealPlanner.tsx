@@ -4,6 +4,7 @@ import { MealSlot, Recipe } from '../types';
 import { getDaysOfWeek, getMealTypes } from '../utils/mealPlanUtils';
 import { sampleRecipes } from '../data/sampleRecipes';
 import { RecipeForm } from './RecipeForm';
+import { RecipeDetailsModal } from './RecipeDetailsModal';
 import { saveCustomRecipes, loadCustomRecipes } from '../utils/localStorage';
 
 interface MealPlannerProps {
@@ -20,6 +21,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
   const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; servings: number } | null>(null);
   
   const days = getDaysOfWeek();
   const mealTypes = getMealTypes();
@@ -151,6 +153,10 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
 
   const getMealForSlot = (day: string, mealType: string) => {
     return meals.find(meal => meal.id === `${day}-${mealType}`);
+  };
+
+  const handleRecipeClick = (recipe: Recipe, servings: number) => {
+    setSelectedRecipe({ recipe, servings });
   };
 
   return (
@@ -292,7 +298,10 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                         {meal?.recipe ? (
                           <div className="bg-blue-50 rounded-lg p-3 h-full border border-blue-200">
                             <div className="flex justify-between items-start mb-2">
-                              <h5 className="text-sm font-medium text-blue-900 line-clamp-2">
+                              <h5 
+                                className="text-sm font-medium text-blue-900 line-clamp-2 cursor-pointer hover:text-blue-700 transition-colors"
+                                onClick={() => handleRecipeClick(meal.recipe!, meal.servings || meal.recipe!.servings)}
+                              >
                                 {meal.recipe.name}
                               </h5>
                               <button
@@ -365,6 +374,15 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
             </div>
           </div>
         </div>
+      )}
+
+      {/* Recipe Details Modal */}
+      {selectedRecipe && (
+        <RecipeDetailsModal
+          recipe={selectedRecipe.recipe}
+          servings={selectedRecipe.servings}
+          onClose={() => setSelectedRecipe(null)}
+        />
       )}
     </div>
   );
