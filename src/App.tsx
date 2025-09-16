@@ -154,7 +154,6 @@ function App() {
           <MealPlanner meals={meals} onMealsUpdate={setMeals} />
         )}
         
-            onRecipeUpdate={handleRecipeUpdate}
         {activeTab === 'shopping' && (
           <ShoppingList 
             shoppingList={shoppingList} 
