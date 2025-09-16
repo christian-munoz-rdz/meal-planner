@@ -1,0 +1,312 @@
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, Users, Utensils, Plus, Trash2 } from 'lucide-react';
+import { MealSlot, Recipe } from '../types';
+import { getDaysOfWeek, getMealTypes } from '../utils/mealPlanUtils';
+import { sampleRecipes } from '../data/sampleRecipes';
+import { RecipeForm } from './RecipeForm';
+import { saveCustomRecipes, loadCustomRecipes } from '../utils/localStorage';
+
+interface MealPlannerProps {
+  meals: MealSlot[];
+  onMealsUpdate: (meals: MealSlot[]) => void;
+}
+
+export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }) => {
+  const [draggedRecipe, setDraggedRecipe] = useState<Recipe | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('All');
+  const [showRecipeForm, setShowRecipeForm] = useState(false);
+  const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
+  const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
+  
+  const days = getDaysOfWeek();
+  const mealTypes = getMealTypes();
+
+  // Load custom recipes on component mount
+  useEffect(() => {
+    setCustomRecipes(loadCustomRecipes());
+  }, []);
+
+  const allRecipes = [...sampleRecipes, ...customRecipes];
+
+  const filteredRecipes = allRecipes.filter(recipe => {
+    const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         recipe.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'All' || recipe.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleSaveRecipe = (recipe: Recipe) => {
+    const updatedCustomRecipes = [...customRecipes, recipe];
+    setCustomRecipes(updatedCustomRecipes);
+    saveCustomRecipes(updatedCustomRecipes);
+    setShowRecipeForm(false);
+  };
+
+  const handleDeleteRecipe = (recipe: Recipe) => {
+    setRecipeToDelete(recipe);
+  };
+
+  const confirmDeleteRecipe = () => {
+    if (!recipeToDelete) return;
+    
+    const updatedCustomRecipes = customRecipes.filter(r => r.id !== recipeToDelete.id);
+    setCustomRecipes(updatedCustomRecipes);
+    saveCustomRecipes(updatedCustomRecipes);
+    setRecipeToDelete(null);
+  };
+
+  const cancelDeleteRecipe = () => {
+    setRecipeToDelete(null);
+  };
+
+  const handleDragStart = (recipe: Recipe) => {
+    setDraggedRecipe(recipe);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, day: string, mealType: string) => {
+    e.preventDefault();
+    if (!draggedRecipe) return;
+
+    const slotId = `${day}-${mealType}`;
+    const updatedMeals = meals.map(meal => 
+      meal.id === slotId 
+        ? { ...meal, recipe: draggedRecipe, servings: draggedRecipe.servings }
+        : meal
+    );
+
+    onMealsUpdate(updatedMeals);
+    setDraggedRecipe(null);
+  };
+
+  const removeMeal = (slotId: string) => {
+    const updatedMeals = meals.map(meal => 
+      meal.id === slotId 
+        ? { ...meal, recipe: undefined, servings: undefined }
+        : meal
+    );
+    onMealsUpdate(updatedMeals);
+  };
+
+  const updateServings = (slotId: string, servings: number) => {
+    const updatedMeals = meals.map(meal => 
+      meal.id === slotId 
+        ? { ...meal, servings: Math.max(1, servings) }
+        : meal
+    );
+    onMealsUpdate(updatedMeals);
+  };
+
+  const getMealForSlot = (day: string, mealType: string) => {
+    return meals.find(meal => meal.id === `${day}-${mealType}`);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Recipe Search and Filter */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Utensils className="h-5 w-5 text-blue-600" />
+            Recipe Library ({allRecipes.length} recipes)
+          </h3>
+          <button
+            onClick={() => setShowRecipeForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Create Recipe
+          </button>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search recipes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="All">All Categories</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Dinner">Dinner</option>
+            <option value="Snack">Snacks</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredRecipes.map(recipe => (
+            <div
+              key={recipe.id}
+              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200 hover:border-blue-300 relative"
+            >
+              {customRecipes.some(cr => cr.id === recipe.id) && (
+                <div className="absolute top-2 right-2 flex items-center gap-2">
+                  <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    Custom
+                  </div>
+                  <button
+                    onClick={() => handleDeleteRecipe(recipe)}
+                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                    title="Delete recipe"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              <div
+                draggable
+                onDragStart={() => handleDragStart(recipe)}
+                className="cursor-grab"
+              >
+                <div className="flex items-start gap-3">
+                  <img 
+                    src={recipe.image} 
+                    alt={recipe.name}
+                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-gray-900 truncate">{recipe.name}</h4>
+                    <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {recipe.cookTime}m
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {recipe.servings}
+                      </span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                        {recipe.category}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Weekly Meal Grid */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-blue-600" />
+          Weekly Meal Plan
+        </h3>
+        
+        <div className="overflow-x-auto">
+          <div className="min-w-full">
+            <div className="grid grid-cols-8 gap-2">
+              {/* Header Row */}
+              <div></div>
+              {days.map(day => (
+                <div key={day} className="p-3 text-center font-medium text-gray-700 bg-gray-50 rounded-lg">
+                  {day}
+                </div>
+              ))}
+
+              {/* Meal Rows */}
+              {mealTypes.map(mealType => (
+                <React.Fragment key={mealType}>
+                  <div className="p-3 font-medium text-gray-700 bg-gray-50 rounded-lg text-sm flex items-center">
+                    {mealType}
+                  </div>
+                  {days.map(day => {
+                    const meal = getMealForSlot(day, mealType);
+                    return (
+                      <div
+                        key={`${day}-${mealType}`}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, day, mealType)}
+                        className="p-2 border-2 border-dashed border-gray-200 rounded-lg min-h-[80px] hover:border-blue-300 transition-colors"
+                      >
+                        {meal?.recipe ? (
+                          <div className="bg-blue-50 rounded-lg p-3 h-full border border-blue-200">
+                            <div className="flex justify-between items-start mb-2">
+                              <h5 className="text-sm font-medium text-blue-900 line-clamp-2">
+                                {meal.recipe.name}
+                              </h5>
+                              <button
+                                onClick={() => removeMeal(meal.id)}
+                                className="text-gray-400 hover:text-red-500 ml-1 flex-shrink-0"
+                              >
+                                ×
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users className="h-3 w-3 text-blue-600" />
+                              <input
+                                type="number"
+                                min="1"
+                                value={meal.servings || meal.recipe.servings}
+                                onChange={(e) => updateServings(meal.id, parseInt(e.target.value))}
+                                className="w-12 text-xs px-1 py-0.5 border border-blue-200 rounded"
+                              />
+                              <span className="text-xs text-blue-700">servings</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                            Drop recipe here
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recipe Creation Form Modal */}
+      {showRecipeForm && (
+        <RecipeForm
+          onSave={handleSaveRecipe}
+          onCancel={() => setShowRecipeForm(false)}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {recipeToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Delete Recipe</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{recipeToDelete.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={cancelDeleteRecipe}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteRecipe}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete Recipe
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
