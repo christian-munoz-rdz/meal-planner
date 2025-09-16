@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, Utensils, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Users, Utensils, Plus, Trash2, Edit } from 'lucide-react';
 import { MealSlot, Recipe } from '../types';
 import { getDaysOfWeek, getMealTypes } from '../utils/mealPlanUtils';
 import { sampleRecipes } from '../data/sampleRecipes';
@@ -18,6 +18,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
   const [showRecipeForm, setShowRecipeForm] = useState(false);
   const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
+  const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
   
   const days = getDaysOfWeek();
   const mealTypes = getMealTypes();
@@ -37,10 +38,14 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
   });
 
   const handleSaveRecipe = (recipe: Recipe) => {
-    const updatedCustomRecipes = [...customRecipes, recipe];
+    const isEditing = customRecipes.some(r => r.id === recipe.id);
+    const updatedCustomRecipes = isEditing 
+      ? customRecipes.map(r => r.id === recipe.id ? recipe : r)
+      : [...customRecipes, recipe];
     setCustomRecipes(updatedCustomRecipes);
     saveCustomRecipes(updatedCustomRecipes);
     setShowRecipeForm(false);
+    setRecipeToEdit(null);
   };
 
   const handleDeleteRecipe = (recipe: Recipe) => {
@@ -58,6 +63,11 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
 
   const cancelDeleteRecipe = () => {
     setRecipeToDelete(null);
+  };
+
+  const handleEditRecipe = (recipe: Recipe) => {
+    setRecipeToEdit(recipe);
+    setShowRecipeForm(true);
   };
 
   const handleDragStart = (recipe: Recipe) => {
@@ -157,6 +167,13 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
                   <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                     Custom
                   </div>
+                  <button
+                    onClick={() => handleEditRecipe(recipe)}
+                    className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                    title="Edit recipe"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
                   <button
                     onClick={() => handleDeleteRecipe(recipe)}
                     className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
@@ -277,8 +294,12 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
       {/* Recipe Creation Form Modal */}
       {showRecipeForm && (
         <RecipeForm
+          recipe={recipeToEdit}
           onSave={handleSaveRecipe}
-          onCancel={() => setShowRecipeForm(false)}
+          onCancel={() => {
+            setShowRecipeForm(false);
+            setRecipeToEdit(null);
+          }}
         />
       )}
 
