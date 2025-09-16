@@ -11,10 +11,6 @@ interface RecipeFormProps {
 export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
-    cookTime: 30,
-    servings: 4,
-    difficulty: 'Medium' as const,
-    category: 'Dinner' as const,
     image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400'
   });
 
@@ -38,10 +34,6 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
     if (recipe) {
       setFormData({
         name: recipe.name,
-        cookTime: recipe.cookTime,
-        servings: recipe.servings,
-        difficulty: recipe.difficulty,
-        category: recipe.category,
         image: recipe.image
       });
       setIngredients(recipe.ingredients.length > 0 ? recipe.ingredients : [
@@ -90,6 +82,10 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
     const savedRecipe: Recipe = {
       id: recipe?.id || `custom-${Date.now()}`,
       ...formData,
+      cookTime: 30, // Default cook time
+      servings: 1, // Default servings for 1 person
+      difficulty: 'Medium' as const, // Default difficulty
+      category: 'Dinner' as const, // Default category
       description: '', // Set empty since we removed description field
       cuisine: '', // Set empty since we removed cuisine field
       ingredients: ingredients.filter(ing => ing.name.trim()),
@@ -135,65 +131,6 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
               placeholder="Enter recipe name..."
               required
             />
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cook Time (minutes)
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.cookTime}
-                onChange={(e) => setFormData({ ...formData, cookTime: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Servings
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.servings}
-                onChange={(e) => setFormData({ ...formData, servings: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Difficulty
-              </label>
-              <select
-                value={formData.difficulty}
-                onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="Breakfast">Breakfast</option>
-                <option value="Lunch">Lunch</option>
-                <option value="Dinner">Dinner</option>
-                <option value="Snack">Snack</option>
-              </select>
-            </div>
           </div>
 
           {/* Ingredients Section */}
