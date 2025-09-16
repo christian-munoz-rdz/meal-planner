@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Clock, Users, ChefHat } from 'lucide-react';
+import { X, Clock, Users, ChefHat, Utensils } from 'lucide-react';
 import { Recipe } from '../types';
 
 interface RecipeDetailsModalProps {
@@ -30,13 +30,9 @@ export const RecipeDetailsModal: React.FC<RecipeDetailsModalProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Recipe Image */}
-          <div className="w-full h-48 rounded-lg overflow-hidden">
-            <img 
-              src={recipe.image} 
-              alt={recipe.name}
-              className="w-full h-full object-cover"
-            />
+          {/* Recipe Icon */}
+          <div className="w-full h-48 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+            <Utensils className="h-24 w-24 text-blue-600" />
           </div>
 
           {/* Recipe Info */}

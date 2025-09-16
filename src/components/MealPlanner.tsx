@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, Utensils, Plus, Trash2, Edit } from 'lucide-react';
+import { Calendar, Clock, Users, Utensils, Plus, Trash2, Edit, ChefHat } from 'lucide-react';
 import { MealSlot, Recipe } from '../types';
 import { getDaysOfWeek, getMealTypes } from '../utils/mealPlanUtils';
 import { sampleRecipes } from '../data/sampleRecipes';
@@ -233,11 +233,9 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                 className="cursor-grab"
               >
                 <div className="flex items-start gap-3">
-                  <img 
-                    src={recipe.image} 
-                    alt={recipe.name}
-                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                  />
+                  <div className="w-16 h-16 bg-blue-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+                    <ChefHat className="h-8 w-8 text-blue-600" />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="font-medium text-gray-900 truncate">{recipe.name}</h4>
                     <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>

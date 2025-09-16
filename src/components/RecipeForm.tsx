@@ -10,8 +10,7 @@ interface RecipeFormProps {
 
 export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400'
+    name: ''
   });
 
   const [ingredients, setIngredients] = useState<Ingredient[]>([
@@ -33,8 +32,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
   useEffect(() => {
     if (recipe) {
       setFormData({
-        name: recipe.name,
-        image: recipe.image
+        name: recipe.name
       });
       setIngredients(recipe.ingredients.length > 0 ? recipe.ingredients : [
         { id: '1', name: '', amount: 1, unit: 'cup', category: 'Pantry' }
@@ -82,6 +80,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
     const savedRecipe: Recipe = {
       id: recipe?.id || `custom-${Date.now()}`,
       ...formData,
+      image: '', // Set empty since we're using icons
       cookTime: 30, // Default cook time
       servings: 1, // Default servings for 1 person
       difficulty: 'Medium' as const, // Default difficulty
