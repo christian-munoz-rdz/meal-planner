@@ -15,6 +15,7 @@ function App() {
   const [meals, setMeals] = useState<MealSlot[]>([]);
   const [savedPlans, setSavedPlans] = useState<MealPlan[]>([]);
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
+  const [recipeUpdateTrigger, setRecipeUpdateTrigger] = useState(0);
 
   // Initialize empty meal slots
   useEffect(() => {
@@ -46,8 +47,12 @@ function App() {
     const newShoppingList = generateShoppingList(meals);
     setShoppingList(newShoppingList);
     saveShoppingList(newShoppingList);
-  }, [meals]);
+  }, [meals, recipeUpdateTrigger]);
 
+  // Function to trigger updates when recipes change
+  const handleRecipeUpdate = () => {
+    setRecipeUpdateTrigger(prev => prev + 1);
+  };
   const handleSavePlan = (name: string, planMeals: MealSlot[]) => {
     const newPlan: MealPlan = {
       id: `plan-${Date.now()}`,
@@ -149,6 +154,7 @@ function App() {
           <MealPlanner meals={meals} onMealsUpdate={setMeals} />
         )}
         
+            onRecipeUpdate={handleRecipeUpdate}
         {activeTab === 'shopping' && (
           <ShoppingList 
             shoppingList={shoppingList} 

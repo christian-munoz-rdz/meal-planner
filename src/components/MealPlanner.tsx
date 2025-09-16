@@ -9,9 +9,10 @@ import { saveCustomRecipes, loadCustomRecipes } from '../utils/localStorage';
 interface MealPlannerProps {
   meals: MealSlot[];
   onMealsUpdate: (meals: MealSlot[]) => void;
+  onRecipeUpdate: () => void;
 }
 
-export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }) => {
+export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, onRecipeUpdate }) => {
   const [draggedRecipe, setDraggedRecipe] = useState<Recipe | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('All');
@@ -28,6 +29,27 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
     setCustomRecipes(loadCustomRecipes());
   }, []);
 
+  // Update meals when recipes change
+  const updateMealsWithNewRecipe = (updatedRecipe: Recipe) => {
+    const updatedMeals = meals.map(meal => {
+      if (meal.recipe && meal.recipe.id === updatedRecipe.id) {
+        return { ...meal, recipe: updatedRecipe };
+      }
+      return meal;
+    });
+    onMealsUpdate(updatedMeals);
+  };
+
+  // Remove meals when recipe is deleted
+  const removeMealsWithDeletedRecipe = (deletedRecipeId: string) => {
+    const updatedMeals = meals.map(meal => {
+      if (meal.recipe && meal.recipe.id === deletedRecipeId) {
+        return { ...meal, recipe: undefined, servings: undefined };
+      }
+      return meal;
+    });
+    onMealsUpdate(updatedMeals);
+  };
   const allRecipes = [...sampleRecipes, ...customRecipes];
 
   const filteredRecipes = allRecipes.filter(recipe => {
@@ -44,6 +66,15 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
       : [...customRecipes, recipe];
     setCustomRecipes(updatedCustomRecipes);
     saveCustomRecipes(updatedCustomRecipes);
+    
+    // Update meals that use this recipe
+    if (isEditing) {
+      updateMealsWithNewRecipe(recipe);
+    }
+    
+    // Trigger shopping list update
+    onRecipeUpdate();
+    
     setShowRecipeForm(false);
     setRecipeToEdit(null);
   };
@@ -58,6 +89,13 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate }
     const updatedCustomRecipes = customRecipes.filter(r => r.id !== recipeToDelete.id);
     setCustomRecipes(updatedCustomRecipes);
     saveCustomRecipes(updatedCustomRecipes);
+    
+    // Remove this recipe from any meals
+    removeMealsWithDeletedRecipe(recipeToDelete.id);
+    
+    // Trigger shopping list update
+    onRecipeUpdate();
+    
     setRecipeToDelete(null);
   };
 
