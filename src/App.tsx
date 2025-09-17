@@ -6,8 +6,7 @@ import { ShoppingList } from './components/ShoppingList';
 import { SavedPlans } from './components/SavedPlans';
 import { NutritionSummary } from './components/NutritionSummary';
 import { getDaysOfWeek, getMealTypes, generateShoppingList } from './utils/mealPlanUtils';
-import { saveMealPlans, loadMealPlans, saveShoppingList, loadShoppingList, saveCustomRecipes, loadCustomRecipes } from './utils/localStorage';
-
+import { saveMealPlans, loadMealPlans, saveShoppingList, loadShoppingList, saveCustomRecipes, loadCustomRecipes, saveCurrentMeals, loadCurrentMeals } from './utils/localStorage';
 type Tab = 'planner' | 'shopping' | 'plans' | 'nutrition';
 
 function App() {
@@ -19,21 +18,29 @@ function App() {
 
   // Initialize empty meal slots
   useEffect(() => {
-    const days = getDaysOfWeek();
-    const mealTypes = getMealTypes();
+    // Try to load saved meals first
+    const savedMeals = loadCurrentMeals();
     
-    const initialMeals: MealSlot[] = [];
-    days.forEach(day => {
-      mealTypes.forEach(mealType => {
-        initialMeals.push({
-          id: `${day}-${mealType}`,
-          day,
-          mealType: mealType as any
+    if (savedMeals.length > 0) {
+      setMeals(savedMeals);
+    } else {
+      // Create empty meal slots if no saved meals
+      const days = getDaysOfWeek();
+      const mealTypes = getMealTypes();
+      
+      const initialMeals: MealSlot[] = [];
+      days.forEach(day => {
+        mealTypes.forEach(mealType => {
+          initialMeals.push({
+            id: `${day}-${mealType}`,
+            day,
+            mealType: mealType as any
+          });
         });
       });
-    });
-    
-    setMeals(initialMeals);
+      
+      setMeals(initialMeals);
+    }
   }, []);
 
   // Load saved data on component mount
@@ -53,6 +60,14 @@ function App() {
   const handleRecipeUpdate = () => {
     setRecipeUpdateTrigger(prev => prev + 1);
   };
+  
+  // Save meals whenever they change
+  useEffect(() => {
+    if (meals.length > 0) {
+      saveCurrentMeals(meals);
+    }
+  }, [meals]);
+  
   const handleSavePlan = (name: string, planMeals: MealSlot[]) => {
     const newPlan: MealPlan = {
       id: `plan-${Date.now()}`,

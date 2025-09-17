@@ -3,6 +3,7 @@ import { MealPlan, ShoppingListItem } from '../types';
 const MEAL_PLANS_KEY = 'mealPlans';
 const SHOPPING_LIST_KEY = 'shoppingList';
 const CUSTOM_RECIPES_KEY = 'customRecipes';
+const CURRENT_MEALS_KEY = 'currentMeals';
 
 export const saveMealPlans = (mealPlans: MealPlan[]): void => {
   localStorage.setItem(MEAL_PLANS_KEY, JSON.stringify(mealPlans));
@@ -78,4 +79,18 @@ export const loadCustomRecipes = (): Recipe[] => {
   } catch {
     return [];
   }
-}
+};
+
+export const saveCurrentMeals = (meals: MealSlot[]): void => {
+  localStorage.setItem(CURRENT_MEALS_KEY, JSON.stringify(meals));
+};
+
+export const loadCurrentMeals = (): MealSlot[] => {
+  const stored = localStorage.getItem(CURRENT_MEALS_KEY);
+  if (!stored) return [];
+  
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return [];
+  }
