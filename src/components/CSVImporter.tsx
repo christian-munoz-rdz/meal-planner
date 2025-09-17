@@ -105,10 +105,10 @@ export const CSVImporter: React.FC<CSVImporterProps> = ({ onImport, onClose }) =
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                 <h4 className="font-medium text-green-800 mb-2">Expected CSV Format:</h4>
                 <ul className="text-sm text-green-700 space-y-1">
-                  <li>• Header row: Dia, Desayuno, Colación M, Comida, Colación V, Cena</li>
-                  <li>• Days in Spanish: Lunes, Martes, Miércoles, etc.</li>
-                  <li>• Recipe descriptions with ingredients and quantities</li>
-                  <li>• Quoted fields for multi-line descriptions</li>
+                  <li>• Header row: Día, Tiempo, Ingrediente, Porción</li>
+                  <li>• Days: Monday, Tuesday, Wednesday, etc. (English or Spanish)</li>
+                  <li>• Meal times: Breakfast, Lunch, Dinner, Snack M, Snack V</li>
+                  <li>• One ingredient per row with portion size</li>
                 </ul>
               </div>
             </div>
