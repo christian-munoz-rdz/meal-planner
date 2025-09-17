@@ -159,6 +159,11 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
     setSelectedRecipe({ recipe, servings });
   };
 
+  const handleEditFromModal = (recipe: Recipe) => {
+    setSelectedRecipe(null);
+    handleEditRecipe(recipe);
+  };
+
   return (
     <div className="space-y-6">
       {/* Recipe Search and Filter */}
@@ -295,6 +300,23 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                                 {meal.recipe.name}
                               </h5>
                               <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (customRecipes.some(cr => cr.id === meal.recipe!.id)) {
+                                    handleEditRecipe(meal.recipe!);
+                                  }
+                                }}
+                                className={`p-1 rounded transition-colors ${
+                                  customRecipes.some(cr => cr.id === meal.recipe!.id)
+                                    ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-100'
+                                    : 'text-gray-300 cursor-not-allowed'
+                                }`}
+                                title={customRecipes.some(cr => cr.id === meal.recipe!.id) ? 'Edit recipe' : 'Cannot edit built-in recipe'}
+                                disabled={!customRecipes.some(cr => cr.id === meal.recipe!.id)}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </button>
+                              <button
                                 onClick={() => removeMeal(meal.id)}
                                 className="text-gray-400 hover:text-red-500 text-lg leading-none"
                               >
@@ -363,12 +385,31 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                               >
                                 {meal.recipe.name}
                               </h5>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (customRecipes.some(cr => cr.id === meal.recipe!.id)) {
+                                      handleEditRecipe(meal.recipe!);
+                                    }
+                                  }}
+                                  className={`p-1 rounded transition-colors ${
+                                    customRecipes.some(cr => cr.id === meal.recipe!.id)
+                                      ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-100'
+                                      : 'text-gray-300 cursor-not-allowed'
+                                  }`}
+                                  title={customRecipes.some(cr => cr.id === meal.recipe!.id) ? 'Edit recipe' : 'Cannot edit built-in recipe'}
+                                  disabled={!customRecipes.some(cr => cr.id === meal.recipe!.id)}
+                                >
+                                  <Edit className="h-3 w-3 lg:h-4 lg:w-4" />
+                                </button>
                               <button
                                 onClick={() => removeMeal(meal.id)}
                                 className="text-gray-400 hover:text-red-500 text-sm lg:text-base leading-none flex-shrink-0"
                               >
                                 ×
                               </button>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2">
                               <Users className="h-3 w-3 text-blue-600 flex-shrink-0" />
@@ -443,6 +484,8 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
           recipe={selectedRecipe.recipe}
           servings={selectedRecipe.servings}
           onClose={() => setSelectedRecipe(null)}
+          onEdit={handleEditFromModal}
+          canEdit={customRecipes.some(cr => cr.id === selectedRecipe.recipe.id)}
         />
       )}
     </div>

@@ -1,17 +1,21 @@
 import React from 'react';
-import { X, Clock, Users, ChefHat, Utensils } from 'lucide-react';
+import { X, Clock, Users, ChefHat, Utensils, Edit } from 'lucide-react';
 import { Recipe } from '../types';
 
 interface RecipeDetailsModalProps {
   recipe: Recipe;
   servings: number;
   onClose: () => void;
+  onEdit?: (recipe: Recipe) => void;
+  canEdit?: boolean;
 }
 
 export const RecipeDetailsModal: React.FC<RecipeDetailsModalProps> = ({
   recipe,
   servings,
-  onClose
+  onClose,
+  onEdit,
+  canEdit = false
 }) => {
   const servingMultiplier = servings / recipe.servings;
 
@@ -21,12 +25,23 @@ export const RecipeDetailsModal: React.FC<RecipeDetailsModalProps> = ({
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-800">{recipe.name}</h2>
+          <div className="flex items-center gap-2">
+            {canEdit && onEdit && (
+              <button
+                onClick={() => onEdit(recipe)}
+                className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Edit className="h-4 w-4" />
+                Edit Recipe
+              </button>
+            )}
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">
