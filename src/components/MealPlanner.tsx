@@ -22,6 +22,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; servings: number } | null>(null);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   
   const days = getDaysOfWeek();
   const mealTypes = getMealTypes();
@@ -164,6 +165,25 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
     handleEditRecipe(recipe);
   };
 
+  const handleClearAll = () => {
+    // Clear all custom recipes
+    setCustomRecipes([]);
+    saveCustomRecipes([]);
+    
+    // Clear all meals from the current plan
+    const clearedMeals = meals.map(meal => ({
+      ...meal,
+      recipe: undefined,
+      servings: undefined
+    }));
+    onMealsUpdate(clearedMeals);
+    
+    // Trigger shopping list update
+    onRecipeUpdate();
+    
+    setShowClearConfirmation(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Recipe Search and Filter */}
@@ -179,6 +199,13 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
           >
             <Plus className="h-4 w-4" />
             Create Recipe
+          </button>
+          <button
+            onClick={() => setShowClearConfirmation(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear All
           </button>
         </div>
         
@@ -472,6 +499,47 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Delete Recipe
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear All Confirmation Modal */}
+      {showClearConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              Clear All Data
+            </h3>
+            <div className="space-y-4 mb-6">
+              <p className="text-gray-600">
+                This action will permanently delete:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
+                <li>All custom recipes ({customRecipes.length} recipes)</li>
+                <li>Current meal plan assignments</li>
+                <li>Generated shopping list</li>
+              </ul>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-800 text-sm font-medium">
+                  ⚠️ This action cannot be undone
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowClearConfirmation(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearAll}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Clear All Data
               </button>
             </div>
           </div>
