@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, ShoppingCart, BookOpen, BarChart3, ChefHat } from 'lucide-react';
-import { MealSlot, MealPlan, ShoppingListItem } from './types';
+import { MealSlot, MealPlan, ShoppingListItem, Recipe } from './types';
 import { MealPlanner } from './components/MealPlanner';
 import { ShoppingList } from './components/ShoppingList';
 import { SavedPlans } from './components/SavedPlans';
 import { NutritionSummary } from './components/NutritionSummary';
 import { getDaysOfWeek, getMealTypes, generateShoppingList } from './utils/mealPlanUtils';
-import { saveMealPlans, loadMealPlans, saveShoppingList, loadShoppingList } from './utils/localStorage';
+import { saveMealPlans, loadMealPlans, saveShoppingList, loadShoppingList, saveCustomRecipes, loadCustomRecipes } from './utils/localStorage';
 
 type Tab = 'planner' | 'shopping' | 'plans' | 'nutrition';
 
@@ -81,6 +81,21 @@ function App() {
   const handleUpdateShoppingList = (updatedList: ShoppingListItem[]) => {
     setShoppingList(updatedList);
     saveShoppingList(updatedList);
+  };
+
+  const handleImportPDF = (importedMeals: MealSlot[], importedRecipes: Recipe[]) => {
+    // Save imported recipes to custom recipes
+    const existingCustomRecipes = loadCustomRecipes();
+    const allCustomRecipes = [...existingCustomRecipes, ...importedRecipes];
+    saveCustomRecipes(allCustomRecipes);
+    
+    // Update meals with imported data
+    const updatedMeals = meals.map(meal => {
+      const importedMeal = importedMeals.find(im => im.id === meal.id);
+      return importedMeal || meal;
+    });
+    setMeals(updatedMeals);
+    setActiveTab('planner');
   };
 
   const tabs = [
@@ -174,6 +189,7 @@ function App() {
             onSavePlan={handleSavePlan}
             onLoadPlan={handleLoadPlan}
             onDeletePlan={handleDeletePlan}
+            onImportPDF={handleImportPDF}
           />
         )}
         

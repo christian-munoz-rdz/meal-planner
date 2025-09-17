@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { BookOpen, Calendar, Download, Trash2, Plus } from 'lucide-react';
+import { BookOpen, Calendar, Download, Trash2, Plus, FileText } from 'lucide-react';
 import { MealPlan, MealSlot } from '../types';
 import { exportMealPlan } from '../utils/localStorage';
+import { PDFImporter } from './PDFImporter';
+import { Recipe } from '../types';
 
 interface SavedPlansProps {
   mealPlans: MealPlan[];
@@ -9,6 +11,7 @@ interface SavedPlansProps {
   onSavePlan: (name: string, meals: MealSlot[]) => void;
   onLoadPlan: (meals: MealSlot[]) => void;
   onDeletePlan: (planId: string) => void;
+  onImportPDF: (meals: MealSlot[], recipes: Recipe[]) => void;
 }
 
 export const SavedPlans: React.FC<SavedPlansProps> = ({
@@ -16,10 +19,12 @@ export const SavedPlans: React.FC<SavedPlansProps> = ({
   currentMeals,
   onSavePlan,
   onLoadPlan,
-  onDeletePlan
+  onDeletePlan,
+  onImportPDF
 }) => {
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [planName, setPlanName] = useState('');
+  const [showPDFImporter, setShowPDFImporter] = useState(false);
 
   const handleSave = () => {
     if (planName.trim() && currentMeals.some(meal => meal.recipe)) {
@@ -34,12 +39,27 @@ export const SavedPlans: React.FC<SavedPlansProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* PDF Import Modal */}
+      {showPDFImporter && (
+        <PDFImporter onImport={onImportPDF} onClose={() => setShowPDFImporter(false)} />
+      )}
+
       {/* Save Current Plan */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-blue-600" />
           Save Current Plan
         </h3>
+
+        <div className="mb-4">
+          <button
+            onClick={() => setShowPDFImporter(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <FileText className="h-4 w-4" />
+            Import from PDF
+          </button>
+        </div>
 
         {hasCurrentMeals ? (
           <div>
