@@ -190,7 +190,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
           >
             <option value="All">All Categories</option>
             <option value="Breakfast">Breakfast</option>
@@ -200,11 +200,11 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
           </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredRecipes.map(recipe => (
             <div
               key={recipe.id}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200 hover:border-blue-300 relative"
+              className="bg-gray-50 rounded-lg p-3 lg:p-4 hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200 hover:border-blue-300 relative"
             >
               {customRecipes.some(cr => cr.id === recipe.id) && (
                 <div className="absolute top-2 right-2 flex items-center gap-2">
@@ -233,13 +233,13 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                 className="cursor-grab"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-16 h-16 bg-blue-100 rounded-lg flex-shrink-0 flex items-center justify-center">
-                    <ChefHat className="h-8 w-8 text-blue-600" />
+                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+                    <ChefHat className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-gray-900 truncate">{recipe.name}</h4>
-                    <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    <h4 className="font-medium text-gray-900 text-sm lg:text-base truncate">{recipe.name}</h4>
+                    <p className="text-xs lg:text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
+                    <div className="flex items-center gap-2 lg:gap-3 mt-2 text-xs text-gray-500 flex-wrap">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {recipe.cookTime}m
@@ -248,7 +248,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                         <Users className="h-3 w-3" />
                         {recipe.servings}
                       </span>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                      <span className="px-1.5 lg:px-2 py-0.5 lg:py-1 bg-blue-100 text-blue-800 rounded text-xs">
                         {recipe.category}
                       </span>
                     </div>
@@ -267,44 +267,36 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
           Weekly Meal Plan
         </h3>
         
-        <div className="overflow-x-auto">
-          <div className="min-w-full">
-            <div className="grid grid-cols-8 gap-2">
-              {/* Header Row */}
-              <div></div>
-              {days.map(day => (
-                <div key={day} className="p-3 text-center font-medium text-gray-700 bg-gray-50 rounded-lg">
-                  {day}
-                </div>
-              ))}
-
-              {/* Meal Rows */}
-              {mealTypes.map(mealType => (
-                <React.Fragment key={mealType}>
-                  <div className="p-3 font-medium text-gray-700 bg-gray-50 rounded-lg text-sm flex items-center">
-                    {mealType}
-                  </div>
-                  {days.map(day => {
-                    const meal = getMealForSlot(day, mealType);
-                    return (
+        {/* Mobile View - Stack by day */}
+        <div className="block md:hidden space-y-4">
+          {days.map(day => (
+            <div key={day} className="border border-gray-200 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-800 mb-3 text-center bg-gray-50 py-2 rounded">
+                {day}
+              </h4>
+              <div className="space-y-3">
+                {mealTypes.map(mealType => {
+                  const meal = getMealForSlot(day, mealType);
+                  return (
+                    <div key={`${day}-${mealType}`} className="border border-gray-200 rounded-lg p-3">
+                      <div className="text-sm font-medium text-gray-600 mb-2">{mealType}</div>
                       <div
-                        key={`${day}-${mealType}`}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, day, mealType)}
-                        className="p-2 border-2 border-dashed border-gray-200 rounded-lg min-h-[80px] hover:border-blue-300 transition-colors"
+                        className="border-2 border-dashed border-gray-200 rounded-lg min-h-[60px] hover:border-blue-300 transition-colors"
                       >
                         {meal?.recipe ? (
                           <div className="bg-blue-50 rounded-lg p-3 h-full border border-blue-200">
                             <div className="flex justify-between items-start mb-2">
                               <h5 
-                                className="text-sm font-medium text-blue-900 line-clamp-2 cursor-pointer hover:text-blue-700 transition-colors"
+                                className="text-sm font-medium text-blue-900 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-2"
                                 onClick={() => handleRecipeClick(meal.recipe!, meal.servings || meal.recipe!.servings)}
                               >
                                 {meal.recipe.name}
                               </h5>
                               <button
                                 onClick={() => removeMeal(meal.id)}
-                                className="text-gray-400 hover:text-red-500 ml-1 flex-shrink-0"
+                                className="text-gray-400 hover:text-red-500 text-lg leading-none"
                               >
                                 ×
                               </button>
@@ -322,8 +314,79 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                          <div className="flex items-center justify-center h-full text-gray-400 text-sm p-3">
                             Drop recipe here
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop View - Grid layout */}
+        <div className="hidden md:block overflow-x-auto">
+          <div className="min-w-full">
+            <div className="grid grid-cols-8 gap-3">
+              {/* Header Row */}
+              <div></div>
+              {days.map(day => (
+                <div key={day} className="p-3 text-center font-medium text-gray-700 bg-gray-50 rounded-lg text-sm lg:text-base">
+                  {day}
+                </div>
+              ))}
+
+              {/* Meal Rows */}
+              {mealTypes.map(mealType => (
+                <React.Fragment key={mealType}>
+                  <div className="p-2 lg:p-3 font-medium text-gray-700 bg-gray-50 rounded-lg text-xs lg:text-sm flex items-center">
+                    {mealType}
+                  </div>
+                  {days.map(day => {
+                    const meal = getMealForSlot(day, mealType);
+                    return (
+                      <div
+                        key={`${day}-${mealType}`}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, day, mealType)}
+                        className="p-1 lg:p-2 border-2 border-dashed border-gray-200 rounded-lg min-h-[70px] lg:min-h-[80px] hover:border-blue-300 transition-colors"
+                      >
+                        {meal?.recipe ? (
+                          <div className="bg-blue-50 rounded-lg p-2 lg:p-3 h-full border border-blue-200">
+                            <div className="flex justify-between items-start mb-2">
+                              <h5 
+                                className="text-xs lg:text-sm font-medium text-blue-900 line-clamp-2 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-1"
+                                onClick={() => handleRecipeClick(meal.recipe!, meal.servings || meal.recipe!.servings)}
+                              >
+                                {meal.recipe.name}
+                              </h5>
+                              <button
+                                onClick={() => removeMeal(meal.id)}
+                                className="text-gray-400 hover:text-red-500 text-sm lg:text-base leading-none flex-shrink-0"
+                              >
+                                ×
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                              <input
+                                type="number"
+                                min="1"
+                                value={meal.servings || meal.recipe.servings}
+                                onChange={(e) => updateServings(meal.id, parseInt(e.target.value))}
+                                className="w-8 lg:w-12 text-xs px-1 py-0.5 border border-blue-200 rounded"
+                              />
+                              <span className="text-xs text-blue-700 hidden lg:inline">servings</span>
+                              <span className="text-xs text-blue-700 lg:hidden">srv</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-gray-400 text-xs lg:text-sm text-center p-1">
+                            <span className="hidden lg:inline">Drop recipe here</span>
+                            <span className="lg:hidden">Drop here</span>
                           </div>
                         )}
                       </div>
