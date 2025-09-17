@@ -1,8 +1,12 @@
+import { GlobalWorkerOptions } from 'pdfjs-dist';
 import { Recipe, MealSlot, Ingredient } from '../types';
 
 // PDF parsing utility (using pdf-parse in browser environment)
 export const parsePDFMealPlan = async (file: File): Promise<{ meals: MealSlot[], recipes: Recipe[] }> => {
   try {
+    // Configure PDF.js worker
+    GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.js`;
+    
     // For browser environment, we'll use FileReader to read the PDF
     const arrayBuffer = await file.arrayBuffer();
     
