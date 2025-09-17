@@ -94,3 +94,4 @@ export const loadCurrentMeals = (): MealSlot[] => {
   } catch {
     return [];
   }
+}
