@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { BookOpen, Calendar, Download, Trash2, Plus, FileText } from 'lucide-react';
+import { BookOpen, Calendar, Download, Trash2, Plus, FileText, FileSpreadsheet } from 'lucide-react';
 import { MealPlan, MealSlot } from '../types';
 import { exportMealPlan } from '../utils/localStorage';
 import { PDFImporter } from './PDFImporter';
+import { CSVImporter } from './CSVImporter';
 import { Recipe } from '../types';
 
 interface SavedPlansProps {
@@ -25,6 +26,7 @@ export const SavedPlans: React.FC<SavedPlansProps> = ({
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [planName, setPlanName] = useState('');
   const [showPDFImporter, setShowPDFImporter] = useState(false);
+  const [showCSVImporter, setShowCSVImporter] = useState(false);
 
   const handleSave = () => {
     if (planName.trim() && currentMeals.some(meal => meal.recipe)) {
@@ -44,6 +46,11 @@ export const SavedPlans: React.FC<SavedPlansProps> = ({
         <PDFImporter onImport={onImportPDF} onClose={() => setShowPDFImporter(false)} />
       )}
 
+      {/* CSV Import Modal */}
+      {showCSVImporter && (
+        <CSVImporter onImport={onImportPDF} onClose={() => setShowCSVImporter(false)} />
+      )}
+
       {/* Save Current Plan */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -51,13 +58,20 @@ export const SavedPlans: React.FC<SavedPlansProps> = ({
           Save Current Plan
         </h3>
 
-        <div className="mb-4">
+        <div className="mb-4 flex gap-3">
           <button
             onClick={() => setShowPDFImporter(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <FileText className="h-4 w-4" />
             Import from PDF
+          </button>
+          <button
+            onClick={() => setShowCSVImporter(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Import from CSV
           </button>
         </div>
 
