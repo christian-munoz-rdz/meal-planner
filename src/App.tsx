@@ -125,7 +125,7 @@ function App() {
       {/* Navigation Tabs */}
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
+          <div className="flex space-x-2 sm:space-x-4 lg:space-x-8 overflow-x-auto">
             {tabs.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -133,13 +133,19 @@ function App() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`whitespace-nowrap py-3 sm:py-4 px-2 sm:px-4 lg:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${
                     getTabColorClass(tab.id, tab.color, isActive)
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">
+                      {tab.id === 'planner' ? 'Plan' : 
+                       tab.id === 'shopping' ? 'Shop' : 
+                       tab.id === 'plans' ? 'Plans' : 
+                       'Nutrition'}
+                    </span>
                   </div>
                 </button>
               );
