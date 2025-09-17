@@ -172,7 +172,7 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
       
       meals.push(mealSlot);
     });
-  }
+  });
   
   return { meals, recipes };
 };
