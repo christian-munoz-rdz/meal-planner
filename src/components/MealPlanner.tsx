@@ -178,6 +178,22 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
     setSelectedRecipe({ recipe, servings });
   };
 
+  const handleMealHover = (e: React.MouseEvent, recipe: Recipe, servings: number) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHoveredMeal({
+      recipe,
+      servings,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top
+      }
+    });
+  };
+
+  const handleMealLeave = () => {
+    setHoveredMeal(null);
+  };
+
   const handleEditFromModal = (recipe: Recipe) => {
     setSelectedRecipe(null);
     handleEditRecipe(recipe);
