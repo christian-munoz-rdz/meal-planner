@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, Utensils, Plus, Trash2, Edit, ChefHat, Download } from 'lucide-react';
+import { Calendar, Clock, Users, Utensils, Plus, Trash2, Edit, ChefHat, Download, Info } from 'lucide-react';
 import { MealSlot, Recipe } from '../types';
 import { getDaysOfWeek, getMealTypes } from '../utils/mealPlanUtils';
 import { sampleRecipes } from '../data/sampleRecipes';
@@ -31,6 +31,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; servings: number } | null>(null);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [hoveredMeal, setHoveredMeal] = useState<{ recipe: Recipe; servings: number; position: { x: number; y: number } } | null>(null);
   
   const days = getDaysOfWeek();
   const mealTypes = getMealTypes();
@@ -353,6 +354,8 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                             <div className="flex justify-between items-start mb-2">
                               <h5 
                                 className="text-sm font-medium text-blue-900 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-2"
+                                onMouseEnter={(e) => handleMealHover(e, meal.recipe!, meal.servings || meal.recipe!.servings)}
+                                onMouseLeave={handleMealLeave}
                                 onClick={() => handleRecipeClick(meal.recipe!, meal.servings || meal.recipe!.servings)}
                               >
                                 {meal.recipe.name}
@@ -439,6 +442,8 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                             <div className="flex justify-between items-start mb-2 min-h-0">
                               <h5 
                                 className="text-xs font-medium text-blue-900 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-1 leading-tight"
+                                onMouseEnter={(e) => handleMealHover(e, meal.recipe!, meal.servings || meal.recipe!.servings)}
+                                onMouseLeave={handleMealLeave}
                                 onClick={() => handleRecipeClick(meal.recipe!, meal.servings || meal.recipe!.servings)}
                                 style={{
                                   display: '-webkit-box',
@@ -590,6 +595,106 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
           onEdit={handleEditFromModal}
           canEdit={customRecipes.some(cr => cr.id === selectedRecipe.recipe.id)}
         />
+      )}
+
+      {/* Hover Preview Tooltip */}
+      {hoveredMeal && (
+        <div 
+          className="fixed z-50 pointer-events-none"
+          style={{
+            left: `${hoveredMeal.position.x}px`,
+            top: `${hoveredMeal.position.y - 10}px`,
+            transform: 'translateX(-50%) translateY(-100%)'
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-sm">
+            {/* Recipe Header */}
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+                <ChefHat className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-semibold text-gray-900 text-sm leading-tight mb-1">
+                  {hoveredMeal.recipe.name}
+                </h4>
+                <div className="flex items-center gap-3 text-xs text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {hoveredMeal.recipe.cookTime}m
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {hoveredMeal.servings}
+                  </span>
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+                    {hoveredMeal.recipe.category}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            {hoveredMeal.recipe.description && (
+              <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                {hoveredMeal.recipe.description}
+              </p>
+            )}
+
+            {/* Key Ingredients */}
+            {hoveredMeal.recipe.ingredients.length > 0 && (
+              <div>
+                <h5 className="text-xs font-medium text-gray-700 mb-2">Key Ingredients:</h5>
+                <div className="flex flex-wrap gap-1">
+                  {hoveredMeal.recipe.ingredients.slice(0, 4).map((ingredient, index) => (
+                    <span 
+                      key={index}
+                      className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                    >
+                      {ingredient.name}
+                    </span>
+                  ))}
+                  {hoveredMeal.recipe.ingredients.length > 4 && (
+                    <span className="text-xs text-gray-500 px-2 py-1">
+                      +{hoveredMeal.recipe.ingredients.length - 4} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Nutrition Preview */}
+            {hoveredMeal.recipe.nutrition && hoveredMeal.recipe.nutrition.calories > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div className="text-xs font-semibold text-orange-600">
+                      {Math.round(hoveredMeal.recipe.nutrition.calories)}
+                    </div>
+                    <div className="text-xs text-gray-500">cal</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-blue-600">
+                      {Math.round(hoveredMeal.recipe.nutrition.protein)}g
+                    </div>
+                    <div className="text-xs text-gray-500">protein</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-green-600">
+                      {Math.round(hoveredMeal.recipe.nutrition.fiber)}g
+                    </div>
+                    <div className="text-xs text-gray-500">fiber</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tooltip Arrow */}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+              <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
+              <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-200 -mt-px"></div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
