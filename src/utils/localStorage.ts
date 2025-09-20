@@ -68,7 +68,7 @@ export const exportShoppingList = (shoppingList: ShoppingListItem[]): void => {
 
 export const exportMealPlanCSV = (meals: MealSlot[]): void => {
   // Create CSV content in normalized format
-  const csvRows = ['Día,Tiempo,Ingrediente,Porción'];
+  const csvRows = ['Día,Tiempo,Ingrediente,Porción,RecipeId,RecipeName'];
   
   // Day mapping for consistent output
   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -111,7 +111,12 @@ export const exportMealPlanCSV = (meals: MealSlot[]): void => {
           `"${ingredient.name}"` : 
           ingredient.name;
         
-        csvRows.push(`${day},${mealTime},${ingredientName},${portion}`);
+        // Escape recipe name if it contains commas
+        const recipeName = meal.recipe.name.includes(',') ? 
+          `"${meal.recipe.name}"` : 
+          meal.recipe.name;
+        
+        csvRows.push(`${day},${mealTime},${ingredientName},${portion},${meal.recipe.id},${recipeName}`);
       });
     });
   });

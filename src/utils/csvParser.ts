@@ -53,15 +53,18 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
   const timeIndex = header.findIndex(h => h.toLowerCase().includes('tiempo') || h.toLowerCase().includes('time'));
   const ingredientIndex = header.findIndex(h => h.toLowerCase().includes('ingrediente') || h.toLowerCase().includes('ingredient'));
   const portionIndex = header.findIndex(h => h.toLowerCase().includes('porción') || h.toLowerCase().includes('porcion') || h.toLowerCase().includes('portion'));
+  const recipeIdIndex = header.findIndex(h => h.toLowerCase().includes('recipeid'));
+  const recipeNameIndex = header.findIndex(h => h.toLowerCase().includes('recipename'));
 
-  console.log('Column indices:', { dayIndex, timeIndex, ingredientIndex, portionIndex }); // Debug log
+  console.log('Column indices:', { dayIndex, timeIndex, ingredientIndex, portionIndex, recipeIdIndex, recipeNameIndex }); // Debug log
 
   if (dayIndex === -1 || timeIndex === -1 || ingredientIndex === -1 || portionIndex === -1) {
     throw new Error('CSV must have columns for Day, Time, Ingredient, and Portion');
   }
 
   // Group ingredients by day and meal type
-  const mealGroups: { [key: string]: { [key: string]: Ingredient[] } } = {};
+  const mealGroups: { [key: string]: { [key: string]: { ingredients: Ingredient[], recipeId?: string, recipeName?: string } } } = {};
+  const recipeMap = new Map<string, Recipe>(); // Track recipes by ID to avoid duplicates
 
   // Process data rows
   for (let i = 1; i < lines.length; i++) {
@@ -73,8 +76,10 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
     const mealTypeRaw = row[timeIndex]?.toLowerCase().trim();
     const ingredientName = row[ingredientIndex]?.trim();
     const portion = row[portionIndex]?.trim();
+    const recipeId = recipeIdIndex >= 0 ? row[recipeIdIndex]?.trim() : undefined;
+    const recipeName = recipeNameIndex >= 0 ? row[recipeNameIndex]?.trim() : undefined;
     
-    console.log(`Row ${i}:`, { dayRaw, mealTypeRaw, ingredientName, portion }); // Debug log
+    console.log(`Row ${i}:`, { dayRaw, mealTypeRaw, ingredientName, portion, recipeId, recipeName }); // Debug log
     
     const dayEnglish = dayMapping[dayRaw];
     const mealTypeEnglish = mealTypeMapping[mealTypeRaw];
@@ -108,50 +113,104 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
       mealGroups[dayEnglish] = {};
     }
     if (!mealGroups[dayEnglish][mealTypeEnglish]) {
-      mealGroups[dayEnglish][mealTypeEnglish] = [];
+      mealGroups[dayEnglish][mealTypeEnglish] = { 
+        ingredients: [], 
+        recipeId: recipeId, 
+        recipeName: recipeName 
+      };
     }
-    mealGroups[dayEnglish][mealTypeEnglish].push(ingredient);
+    mealGroups[dayEnglish][mealTypeEnglish].ingredients.push(ingredient);
   }
 
   console.log('Meal groups:', mealGroups); // Debug log
 
   // Create recipes and meals from grouped ingredients
   Object.entries(mealGroups).forEach(([day, mealTypes]) => {
-    Object.entries(mealTypes).forEach(([mealType, ingredients]) => {
-      if (ingredients.length === 0) return;
+    Object.entries(mealTypes).forEach(([mealType, mealData]) => {
+      if (mealData.ingredients.length === 0) return;
 
-      // Generate recipe name from main ingredients
-      const mainIngredients = ingredients.slice(0, 3).map(ing => ing.name);
-      const recipeName = mainIngredients.join(', ');
+      let recipe: Recipe;
       
-      const recipeId = `imported-csv-${Date.now()}-${Math.random()}`;
-      const recipe: Recipe = {
-        id: recipeId,
-        name: recipeName.charAt(0).toUpperCase() + recipeName.slice(1),
-        description: `Imported meal with ${ingredients.length} ingredients`,
-        cookTime: 30,
-        servings: 1,
-        difficulty: 'Medium' as const,
-        category: getMealCategory(mealType),
-        cuisine: 'Mexican',
-        image: '',
-        ingredients: ingredients,
-        instructions: [
-          'Prepare all ingredients as listed',
-          'Follow traditional cooking methods for this dish',
-          'Cook until done and serve hot'
-        ],
-        mealTypes: [getMealCategory(mealType)],
-        nutrition: {
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fat: 0,
-          fiber: 0
+      // Check if we already have this recipe (by ID or name)
+      if (mealData.recipeId && recipeMap.has(mealData.recipeId)) {
+        recipe = recipeMap.get(mealData.recipeId)!;
+        console.log(`Reusing existing recipe: ${recipe.name} (ID: ${recipe.id})`);
+      } else if (mealData.recipeName) {
+        // Look for existing recipe by name
+        const existingRecipe = Array.from(recipeMap.values()).find(r => r.name === mealData.recipeName);
+        if (existingRecipe) {
+          recipe = existingRecipe;
+          console.log(`Reusing existing recipe by name: ${recipe.name}`);
+        } else {
+          // Create new recipe with provided name and ID
+          const recipeId = mealData.recipeId || `imported-csv-${Date.now()}-${Math.random()}`;
+          recipe = {
+            id: recipeId,
+            name: mealData.recipeName,
+            description: `Imported meal with ${mealData.ingredients.length} ingredients`,
+            cookTime: 30,
+            servings: 1,
+            difficulty: 'Medium' as const,
+            category: getMealCategory(mealType),
+            cuisine: 'Mexican',
+            image: '',
+            ingredients: mealData.ingredients,
+            instructions: [
+              'Prepare all ingredients as listed',
+              'Follow traditional cooking methods for this dish',
+              'Cook until done and serve hot'
+            ],
+            mealTypes: [getMealCategory(mealType)],
+            nutrition: {
+              calories: 0,
+              protein: 0,
+              carbs: 0,
+              fat: 0,
+              fiber: 0
+            }
+          };
+          recipeMap.set(recipe.id, recipe);
+          console.log(`Created new recipe: ${recipe.name} (ID: ${recipe.id})`);
         }
-      };
+      } else {
+        // Fallback: generate recipe name from ingredients (legacy support)
+        const mainIngredients = mealData.ingredients.slice(0, 3).map(ing => ing.name);
+        const recipeName = mainIngredients.join(', ');
+        const recipeId = `imported-csv-${Date.now()}-${Math.random()}`;
+        
+        recipe = {
+          id: recipeId,
+          name: recipeName.charAt(0).toUpperCase() + recipeName.slice(1),
+          description: `Imported meal with ${mealData.ingredients.length} ingredients`,
+          cookTime: 30,
+          servings: 1,
+          difficulty: 'Medium' as const,
+          category: getMealCategory(mealType),
+          cuisine: 'Mexican',
+          image: '',
+          ingredients: mealData.ingredients,
+          instructions: [
+            'Prepare all ingredients as listed',
+            'Follow traditional cooking methods for this dish',
+            'Cook until done and serve hot'
+          ],
+          mealTypes: [getMealCategory(mealType)],
+          nutrition: {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+            fiber: 0
+          }
+        };
+        recipeMap.set(recipe.id, recipe);
+        console.log(`Created new recipe from ingredients: ${recipe.name} (ID: ${recipe.id})`);
+      }
       
-      recipes.push(recipe);
+      // Only add recipe to the list if it's not already there
+      if (!recipes.find(r => r.id === recipe.id)) {
+        recipes.push(recipe);
+      }
       
       // Create meal slot
       const mealSlot: MealSlot = {
