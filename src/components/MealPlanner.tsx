@@ -33,6 +33,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [hoveredMeal, setHoveredMeal] = useState<{ recipe: Recipe; servings: number; position: { x: number; y: number } } | null>(null);
   const [dragSource, setDragSource] = useState<'library' | 'meal' | null>(null);
+  const [attachmentFilter, setAttachmentFilter] = useState<'All' | 'Attached' | 'Unattached'>('All');
   
   const days = getDaysOfWeek();
   const mealTypes = getMealTypes();
@@ -73,6 +74,11 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
   };
   const allRecipes = [...sampleRecipes, ...customRecipes];
 
+  // Check if a recipe is attached to any meal slot
+  const isRecipeAttached = (recipeId: string) => {
+    return meals.some(meal => meal.recipe?.id === recipeId);
+  };
+
   const filteredRecipes = allRecipes.filter(recipe => {
     const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          recipe.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -95,7 +101,15 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
       matchesCategory = recipe.category === filterCategory;
     }
     
-    return matchesSearch && matchesCategory;
+    // Attachment filter
+    let matchesAttachment = true;
+    if (attachmentFilter === 'Attached') {
+      matchesAttachment = isRecipeAttached(recipe.id);
+    } else if (attachmentFilter === 'Unattached') {
+      matchesAttachment = !isRecipeAttached(recipe.id);
+    }
+    
+    return matchesSearch && matchesCategory && matchesAttachment;
   });
 
   const handleSaveRecipe = (recipe: Recipe) => {
@@ -318,25 +332,47 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
-          >
-            <option value="All">All Categories</option>
-            <option value="Breakfast">Breakfast</option>
-            <option value="Lunch">Lunch</option>
-            <option value="Dinner">Dinner</option>
-            <option value="Snacks">Snacks</option>
-          </select>
+          <div className="flex gap-2">
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
+            >
+              <option value="All">All Categories</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+              <option value="Snacks">Snacks</option>
+            </select>
+            <select
+              value={attachmentFilter}
+              onChange={(e) => setAttachmentFilter(e.target.value as 'All' | 'Attached' | 'Unattached')}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
+            >
+              <option value="All">All Recipes</option>
+              <option value="Attached">📌 Attached</option>
+              <option value="Unattached">📋 Unattached</option>
+            </select>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredRecipes.map(recipe => (
             <div
               key={recipe.id}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200 hover:border-blue-300 relative min-h-[120px] flex flex-col"
+              className={`rounded-lg p-4 hover:bg-gray-100 transition-colors border-2 border-dashed relative min-h-[120px] flex flex-col ${
+                isRecipeAttached(recipe.id) 
+                  ? 'bg-blue-50 border-blue-300 hover:border-blue-400' 
+                  : 'bg-gray-50 border-gray-200 hover:border-blue-300'
+              }`}
             >
+              {/* Attachment indicator */}
+              {isRecipeAttached(recipe.id) && (
+                <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                  📌
+                </div>
+              )}
+              
               <div
                 draggable
                 onDragStart={() => handleDragStart(recipe)}
