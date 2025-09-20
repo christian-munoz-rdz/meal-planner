@@ -158,17 +158,51 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
                             {item.recipeNames.length > 0 && (
                               <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
                                 <span>For: {item.recipeNames.join(', ')}</span>
-                                {item.recipeNames.length === 1 && (() => {
-                                  const recipe = customRecipes.find(r => r.name === item.recipeNames[0]);
-                                  return recipe ? (
-                                    <button
-                                      onClick={() => onEditRecipe(recipe)}
-                                      className="text-blue-600 hover:text-blue-800 transition-colors"
-                                      title="Edit recipe"
-                                    >
-                                      <Edit className="h-3 w-3" />
-                                    </button>
-                                  ) : null;
+                                {(() => {
+                                  const editableRecipes = item.recipeNames
+                                    .map(name => customRecipes.find(r => r.name === name))
+                                    .filter(recipe => recipe !== undefined);
+                                  
+                                  if (editableRecipes.length === 1) {
+                                    // Single recipe - show edit button directly
+                                    return (
+                                      <button
+                                        onClick={() => onEditRecipe(editableRecipes[0])}
+                                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                                        title="Edit recipe"
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </button>
+                                    );
+                                  } else if (editableRecipes.length > 1) {
+                                    // Multiple recipes - show dropdown
+                                    return (
+                                      <div className="relative">
+                                        <select
+                                          onChange={(e) => {
+                                            const selectedRecipe = editableRecipes.find(r => r.name === e.target.value);
+                                            if (selectedRecipe) {
+                                              onEditRecipe(selectedRecipe);
+                                            }
+                                            e.target.value = ''; // Reset selection
+                                          }}
+                                          className="text-blue-600 hover:text-blue-800 transition-colors bg-transparent border-none text-xs cursor-pointer"
+                                          title="Choose recipe to edit"
+                                          defaultValue=""
+                                        >
+                                          <option value="" disabled>
+                                            <Edit className="h-3 w-3 inline" /> Edit...
+                                          </option>
+                                          {editableRecipes.map(recipe => (
+                                            <option key={recipe.id} value={recipe.name}>
+                                              Edit "{recipe.name}"
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
                                 })()}
                               </div>
                             )}
