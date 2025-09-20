@@ -142,10 +142,20 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
     if (!draggedRecipe) return;
 
     const slotId = `${day}-${mealType}`;
+    
+    // Check if we're moving a recipe from another slot
+    const sourceSlot = meals.find(meal => meal.recipe?.id === draggedRecipe.id);
+    
     const updatedMeals = meals.map(meal => 
       meal.id === slotId 
-        ? { ...meal, recipe: draggedRecipe, servings: draggedRecipe.servings }
-        : meal
+        ? { 
+            ...meal, 
+            recipe: draggedRecipe, 
+            servings: sourceSlot?.servings || draggedRecipe.servings 
+          }
+        : sourceSlot && meal.id === sourceSlot.id
+          ? { ...meal, recipe: undefined, servings: undefined }
+          : meal
     );
 
     onMealsUpdate(updatedMeals);
@@ -375,6 +385,8 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                             <div className="flex justify-between items-start mb-2">
                               <h5 
                                 className="text-sm font-medium text-blue-900 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-2"
+                                draggable
+                                onDragStart={() => handleDragStart(meal.recipe!)}
                                 onMouseEnter={(e) => handleMealHover(e, meal.recipe!, meal.servings || meal.recipe!.servings)}
                                 onMouseLeave={handleMealLeave}
                                 onClick={() => handleRecipeClick(meal.recipe!, meal.servings || meal.recipe!.servings)}
@@ -459,7 +471,11 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                         className="p-2 border-2 border-dashed border-gray-200 rounded-lg min-h-[90px] hover:border-blue-300 transition-colors min-w-[140px]"
                       >
                         {meal?.recipe ? (
-                          <div className="bg-blue-50 rounded-lg p-2 h-full border border-blue-200 flex flex-col">
+                          <div 
+                            className="bg-blue-50 rounded-lg p-2 h-full border border-blue-200 flex flex-col cursor-grab active:cursor-grabbing"
+                            draggable
+                            onDragStart={() => handleDragStart(meal.recipe!)}
+                          >
                             <div className="flex justify-between items-start mb-2 min-h-0">
                               <h5 
                                 className="text-xs font-medium text-blue-900 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-1 leading-tight"
