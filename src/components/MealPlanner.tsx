@@ -263,23 +263,23 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
           {filteredRecipes.map(recipe => (
             <div
               key={recipe.id}
-              className="bg-gray-50 rounded-lg p-3 lg:p-4 hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200 hover:border-blue-300 relative"
+              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200 hover:border-blue-300 relative min-h-[120px] flex flex-col"
             >
               {customRecipes.some(cr => cr.id === recipe.id) && (
-                <div className="absolute top-2 right-2 flex items-center gap-2">
+                <div className="absolute top-3 right-3 flex items-center gap-1 z-10">
                   <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                     Custom
                   </div>
                   <button
                     onClick={() => handleEditRecipe(recipe)}
-                    className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                    className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
                     title="Edit recipe"
                   >
                     <Edit className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteRecipe(recipe)}
-                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                    className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
                     title="Delete recipe"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -289,16 +289,16 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
               <div
                 draggable
                 onDragStart={() => handleDragStart(recipe)}
-                className="cursor-grab"
+                className="cursor-grab flex-1 flex flex-col"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-100 rounded-lg flex-shrink-0 flex items-center justify-center">
-                    <ChefHat className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600" />
+                  <div className="w-14 h-14 bg-blue-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+                    <ChefHat className="h-7 w-7 text-blue-600" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-gray-900 text-sm lg:text-base truncate">{recipe.name}</h4>
-                    <p className="text-xs lg:text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
-                    <div className="flex items-center gap-2 lg:gap-3 mt-2 text-xs text-gray-500 flex-wrap">
+                  <div className="min-w-0 flex-1 pr-16">
+                    <h4 className="font-medium text-gray-900 text-sm leading-tight mb-1">{recipe.name}</h4>
+                    <p className="text-xs text-gray-600 line-clamp-2 mb-2">{recipe.description}</p>
+                    <div className="flex items-center gap-2 mt-auto text-xs text-gray-500 flex-wrap">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {recipe.cookTime}m
@@ -307,7 +307,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                         <Users className="h-3 w-3" />
                         {recipe.servings}
                       </span>
-                      <span className="px-1.5 lg:px-2 py-0.5 lg:py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
                         {recipe.category}
                       </span>
                     </div>
@@ -405,12 +405,12 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
 
         {/* Desktop View - Grid layout */}
         <div className="hidden md:block overflow-x-auto">
-          <div className="min-w-full">
-            <div className="grid grid-cols-8 gap-3">
+          <div className="min-w-[1200px]">
+            <div className="grid grid-cols-8 gap-2">
               {/* Header Row */}
               <div></div>
               {days.map(day => (
-                <div key={day} className="p-3 text-center font-medium text-gray-700 bg-gray-50 rounded-lg text-sm lg:text-base">
+                <div key={day} className="p-2 text-center font-medium text-gray-700 bg-gray-50 rounded-lg text-sm min-w-[140px]">
                   {day}
                 </div>
               ))}
@@ -418,7 +418,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
               {/* Meal Rows */}
               {mealTypes.map(mealType => (
                 <React.Fragment key={mealType}>
-                  <div className="p-2 lg:p-3 font-medium text-gray-700 bg-gray-50 rounded-lg text-xs lg:text-sm flex items-center">
+                  <div className="p-2 font-medium text-gray-700 bg-gray-50 rounded-lg text-xs flex items-center min-w-[100px]">
                     {mealType}
                   </div>
                   {days.map(day => {
@@ -428,18 +428,24 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                         key={`${day}-${mealType}`}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, day, mealType)}
-                        className="p-1 lg:p-2 border-2 border-dashed border-gray-200 rounded-lg min-h-[70px] lg:min-h-[80px] hover:border-blue-300 transition-colors"
+                        className="p-2 border-2 border-dashed border-gray-200 rounded-lg min-h-[90px] hover:border-blue-300 transition-colors min-w-[140px]"
                       >
                         {meal?.recipe ? (
-                          <div className="bg-blue-50 rounded-lg p-2 lg:p-3 h-full border border-blue-200">
-                            <div className="flex justify-between items-start mb-2">
+                          <div className="bg-blue-50 rounded-lg p-2 h-full border border-blue-200 flex flex-col">
+                            <div className="flex justify-between items-start mb-2 min-h-0">
                               <h5 
-                                className="text-xs lg:text-sm font-medium text-blue-900 line-clamp-2 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-1"
+                                className="text-xs font-medium text-blue-900 cursor-pointer hover:text-blue-700 transition-colors flex-1 pr-1 leading-tight"
                                 onClick={() => handleRecipeClick(meal.recipe!, meal.servings || meal.recipe!.servings)}
+                                style={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden'
+                                }}
                               >
                                 {meal.recipe.name}
                               </h5>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-0.5 flex-shrink-0">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -455,33 +461,31 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                                   title={customRecipes.some(cr => cr.id === meal.recipe!.id) ? 'Edit recipe' : 'Cannot edit built-in recipe'}
                                   disabled={!customRecipes.some(cr => cr.id === meal.recipe!.id)}
                                 >
-                                  <Edit className="h-3 w-3 lg:h-4 lg:w-4" />
+                                  <Edit className="h-3 w-3" />
                                 </button>
                               <button
                                 onClick={() => removeMeal(meal.id)}
-                                className="text-gray-400 hover:text-red-500 text-sm lg:text-base leading-none flex-shrink-0"
+                                className="text-gray-400 hover:text-red-500 text-sm leading-none flex-shrink-0 ml-0.5"
                               >
                                 ×
                               </button>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 mt-auto">
                               <Users className="h-3 w-3 text-blue-600 flex-shrink-0" />
                               <input
                                 type="number"
                                 min="1"
                                 value={meal.servings || meal.recipe.servings}
                                 onChange={(e) => updateServings(meal.id, parseInt(e.target.value))}
-                                className="w-8 lg:w-12 text-xs px-1 py-0.5 border border-blue-200 rounded"
+                                className="w-10 text-xs px-1 py-0.5 border border-blue-200 rounded flex-shrink-0"
                               />
-                              <span className="text-xs text-blue-700 hidden lg:inline">servings</span>
-                              <span className="text-xs text-blue-700 lg:hidden">srv</span>
+                              <span className="text-xs text-blue-700 flex-shrink-0">srv</span>
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center h-full text-gray-400 text-xs lg:text-sm text-center p-1">
-                            <span className="hidden lg:inline">Drop recipe here</span>
-                            <span className="lg:hidden">Drop here</span>
+                          <div className="flex items-center justify-center h-full text-gray-400 text-xs text-center p-1">
+                            <span>Drop here</span>
                           </div>
                         )}
                       </div>
