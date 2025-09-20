@@ -286,40 +286,19 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
               key={recipe.id}
               className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200 hover:border-blue-300 relative min-h-[120px] flex flex-col"
             >
-              {customRecipes.some(cr => cr.id === recipe.id) && (
-                <div className="absolute top-3 right-3 flex items-center gap-1 z-10">
-                  <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    Custom
-                  </div>
-                  <button
-                    onClick={() => handleEditRecipe(recipe)}
-                    className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                    title="Edit recipe"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteRecipe(recipe)}
-                    className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
-                    title="Delete recipe"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
               <div
                 draggable
                 onDragStart={() => handleDragStart(recipe)}
-                className="cursor-grab flex-1 flex flex-col"
+                className="cursor-grab flex-1 flex flex-col h-full"
               >
                 <div className="flex items-start gap-3">
                   <div className="w-14 h-14 bg-blue-100 rounded-lg flex-shrink-0 flex items-center justify-center">
                     <ChefHat className="h-7 w-7 text-blue-600" />
                   </div>
-                  <div className="min-w-0 flex-1 pr-16">
+                  <div className="min-w-0 flex-1">
                     <h4 className="font-medium text-gray-900 text-sm leading-tight mb-1">{recipe.name}</h4>
                     <p className="text-xs text-gray-600 line-clamp-2 mb-2">{recipe.description}</p>
-                    <div className="flex items-center gap-2 mt-auto text-xs text-gray-500 flex-wrap">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {recipe.cookTime}m
@@ -328,11 +307,37 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                         <Users className="h-3 w-3" />
                         {recipe.servings}
                       </span>
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
-                        {recipe.category}
-                      </span>
                     </div>
                   </div>
+                </div>
+                
+                {/* Bottom section with category and action buttons */}
+                <div className="mt-auto pt-3 flex items-center justify-between">
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+                    {recipe.category}
+                  </span>
+                  
+                  {customRecipes.some(cr => cr.id === recipe.id) && (
+                    <div className="flex items-center gap-1">
+                      <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                        Custom
+                      </div>
+                      <button
+                        onClick={() => handleEditRecipe(recipe)}
+                        className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                        title="Edit recipe"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRecipe(recipe)}
+                        className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                        title="Delete recipe"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
