@@ -346,9 +346,23 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                 
                 {/* Bottom section with category and action buttons */}
                 <div className="mt-auto pt-3 flex items-center justify-between">
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
-                    {recipe.category}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+                      {recipe.category}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      recipe.category === 'Breakfast' ? 'bg-orange-100 text-orange-800' :
+                      recipe.category === 'Lunch' ? 'bg-green-100 text-green-800' :
+                      recipe.category === 'Dinner' ? 'bg-purple-100 text-purple-800' :
+                      recipe.category === 'Snack' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {recipe.category === 'Breakfast' ? '🌅' :
+                       recipe.category === 'Lunch' ? '🍽️' :
+                       recipe.category === 'Dinner' ? '🌙' :
+                       recipe.category === 'Snack' ? '🍎' : '🍴'} {recipe.category}
+                    </span>
+                  </div>
                   
                   {customRecipes.some(cr => cr.id === recipe.id) && (
                     <div className="flex items-center gap-1">
