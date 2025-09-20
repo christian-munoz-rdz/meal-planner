@@ -32,6 +32,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; servings: number } | null>(null);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [hoveredMeal, setHoveredMeal] = useState<{ recipe: Recipe; servings: number; position: { x: number; y: number } } | null>(null);
+  const [dragSource, setDragSource] = useState<'library' | 'meal' | null>(null);
   
   const days = getDaysOfWeek();
   const mealTypes = getMealTypes();
@@ -131,6 +132,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
 
   const handleDragStart = (recipe: Recipe) => {
     setDraggedRecipe(recipe);
+    setDragSource('library');
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -142,20 +144,41 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
     if (!draggedRecipe) return;
 
     const slotId = `${day}-${mealType}`;
-
-    // Simply assign the recipe to the target slot without removing from source
-    const updatedMeals = meals.map(meal => 
-      meal.id === slotId 
-        ? { 
+    
+    if (dragSource === 'meal') {
+      // Moving between meal slots - remove from source and add to target
+      const sourceSlot = meals.find(meal => meal.recipe?.id === draggedRecipe.id);
+      const updatedMeals = meals.map(meal => {
+        if (meal.recipe?.id === draggedRecipe.id && sourceSlot) {
+          // Clear the source slot
+          return { ...meal, recipe: undefined, servings: undefined };
+        } else if (meal.id === slotId) {
+          // Set the target slot
+          return { 
             ...meal, 
             recipe: draggedRecipe, 
-            servings: draggedRecipe.servings 
-          }
-        : meal
-    );
+            servings: sourceSlot?.servings || draggedRecipe.servings 
+          };
+        }
+        return meal;
+      });
+      onMealsUpdate(updatedMeals);
+    } else {
+      // Dragging from library - just assign to target slot (allow duplicates)
+      const updatedMeals = meals.map(meal => 
+        meal.id === slotId 
+          ? { 
+              ...meal, 
+              recipe: draggedRecipe, 
+              servings: draggedRecipe.servings 
+            }
+          : meal
+      );
+      onMealsUpdate(updatedMeals);
+    }
 
-    onMealsUpdate(updatedMeals);
     setDraggedRecipe(null);
+    setDragSource(null);
   };
 
   const removeMeal = (slotId: string) => {
