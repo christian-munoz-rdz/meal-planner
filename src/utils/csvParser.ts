@@ -285,37 +285,43 @@ const normalizeUnit = (unit: string): string => {
 const categorizeIngredient = (name: string): any => {
   const lowerName = name.toLowerCase();
   
+  // Meat & Seafood
   if (lowerName.includes('pollo') || lowerName.includes('res') || lowerName.includes('pescado') || 
-      lowerName.includes('carne') || lowerName.includes('atún') || lowerName.includes('salmón') ||
-      lowerName.includes('pavo') || lowerName.includes('molida') || lowerName.includes('filete') ||
-      lowerName.includes('falda') || lowerName.includes('pechuga')) {
+      lowerName.includes('carne') || lowerName.includes('atún') || lowerName.includes('atun') ||
+      lowerName.includes('salmón') || lowerName.includes('pavo') || lowerName.includes('molida') || 
+      lowerName.includes('filete') || lowerName.includes('falda') || lowerName.includes('pechuga') ||
+      lowerName.includes('bistec') || lowerName.includes('jamon') || lowerName.includes('jamón')) {
     return 'Meat & Seafood';
   }
   
+  // Dairy & Eggs
   if (lowerName.includes('huevo') || lowerName.includes('leche') || lowerName.includes('queso') ||
       lowerName.includes('yogurt') || lowerName.includes('crema') || lowerName.includes('panela')) {
     return 'Dairy & Eggs';
   }
   
+  // Produce
   if (lowerName.includes('tomate') || lowerName.includes('cebolla') || lowerName.includes('lechuga') ||
       lowerName.includes('espinaca') || lowerName.includes('apio') || lowerName.includes('pepino') ||
       lowerName.includes('zanahoria') || lowerName.includes('jitomate') || lowerName.includes('nopales') ||
       lowerName.includes('calabacitas') || lowerName.includes('chayote') || lowerName.includes('jicama') ||
       lowerName.includes('perejil') || lowerName.includes('manzana') || lowerName.includes('piña') ||
       lowerName.includes('naranja') || lowerName.includes('fresa') || lowerName.includes('papaya') ||
-      lowerName.includes('melón') || lowerName.includes('almendras') || lowerName.includes('nuez') ||
-      lowerName.includes('cacahuate')) {
+      lowerName.includes('melón') || lowerName.includes('almendras') || lowerName.includes('almendra') ||
+      lowerName.includes('nuez') || lowerName.includes('cacahuate') || lowerName.includes('verdura')) {
     return 'Produce';
   }
   
+  // Bakery
   if (lowerName.includes('pan') || lowerName.includes('tortilla') || lowerName.includes('tostada')) {
     return 'Bakery';
   }
   
+  // Pantry
   if (lowerName.includes('aceite') || lowerName.includes('sal') || lowerName.includes('pimienta') ||
       lowerName.includes('avena') || lowerName.includes('arroz') || lowerName.includes('frijol') ||
       lowerName.includes('lentejas') || lowerName.includes('mayonesa') || lowerName.includes('canela') ||
-      lowerName.includes('limón') || lowerName.includes('salsa')) {
+      lowerName.includes('limón') || lowerName.includes('salsa') || lowerName.includes('sopa')) {
     return 'Pantry';
   }
   
