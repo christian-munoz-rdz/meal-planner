@@ -34,6 +34,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
   const [hoveredMeal, setHoveredMeal] = useState<{ recipe: Recipe; servings: number; position: { x: number; y: number } } | null>(null);
   const [dragSource, setDragSource] = useState<'library' | 'meal' | null>(null);
   const [attachmentFilter, setAttachmentFilter] = useState<'All' | 'Attached' | 'Unattached'>('All');
+  const [autoScrollInterval, setAutoScrollInterval] = useState<NodeJS.Timeout | null>(null);
   
   const days = getDaysOfWeek();
   const mealTypes = getMealTypes();
@@ -162,6 +163,54 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
     setShowRecipeForm(true);
   };
 
+  // Auto-scroll functionality during drag
+  const startAutoScroll = (clientY: number) => {
+    const scrollThreshold = 100; // pixels from edge to start scrolling
+    const scrollSpeed = 10; // pixels per interval
+    const scrollInterval = 16; // ~60fps
+    
+    const viewportHeight = window.innerHeight;
+    const scrollTop = window.pageYOffset;
+    const documentHeight = document.documentElement.scrollHeight;
+    
+    let shouldScroll = false;
+    let scrollDirection = 0;
+    
+    // Check if we should scroll up
+    if (clientY < scrollThreshold) {
+      shouldScroll = true;
+      scrollDirection = -scrollSpeed;
+    }
+    // Check if we should scroll down
+    else if (clientY > viewportHeight - scrollThreshold) {
+      shouldScroll = true;
+      scrollDirection = scrollSpeed;
+    }
+    
+    if (shouldScroll && !autoScrollInterval) {
+      const interval = setInterval(() => {
+        const currentScrollTop = window.pageYOffset;
+        const newScrollTop = currentScrollTop + scrollDirection;
+        
+        // Don't scroll beyond document bounds
+        if (newScrollTop >= 0 && newScrollTop <= documentHeight - viewportHeight) {
+          window.scrollTo(0, newScrollTop);
+        }
+      }, scrollInterval);
+      
+      setAutoScrollInterval(interval);
+    } else if (!shouldScroll && autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      setAutoScrollInterval(null);
+    }
+  };
+  
+  const stopAutoScroll = () => {
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      setAutoScrollInterval(null);
+    }
+  };
   const handleDragStart = (recipe: Recipe) => {
     setDraggedRecipe(recipe);
     setDragSource('library');
@@ -169,6 +218,10 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    // Start auto-scroll based on mouse position
+    if (draggedRecipe) {
+      startAutoScroll(e.clientY);
+    }
   };
 
   const handleDrop = (e: React.DragEvent, day: string, mealType: string) => {
@@ -215,7 +268,30 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
 
     setDraggedRecipe(null);
     setDragSource(null);
+    stopAutoScroll();
   };
+  // Handle drag end (when drag is cancelled)
+  const handleDragEnd = () => {
+    setDraggedRecipe(null);
+    setDragSource(null);
+    stopAutoScroll();
+  };
+  
+  // Handle mouse move during drag (for better auto-scroll)
+  const handleDragMove = (e: React.DragEvent) => {
+    if (draggedRecipe) {
+      startAutoScroll(e.clientY);
+    }
+  };
+
+  // Cleanup auto-scroll on component unmount
+  useEffect(() => {
+    return () => {
+      if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+      }
+    };
+  }, [autoScrollInterval]);
 
   const removeMeal = (slotId: string) => {
     const updatedMeals = meals.map(meal => 
@@ -376,6 +452,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
               <div
                 draggable
                 onDragStart={() => handleDragStart(recipe)}
+                onDragEnd={handleDragEnd}
                 className="cursor-grab flex-1 flex flex-col h-full"
               >
                 <div className="flex items-start gap-3">
@@ -572,6 +649,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                       <div
                         key={`${day}-${mealType}`}
                         onDragOver={handleDragOver}
+                        onDragEnter={(e) => e.preventDefault()}
                         onDrop={(e) => handleDrop(e, day, mealType)}
                         className="p-2 border-2 border-dashed border-gray-200 rounded-lg min-h-[90px] hover:border-blue-300 transition-colors min-w-[140px]"
                       >
