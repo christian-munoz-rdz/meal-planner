@@ -10,6 +10,7 @@ export interface Recipe {
   image: string;
   ingredients: Ingredient[];
   instructions: string[];
+  mealTypes: ('Breakfast' | 'Lunch' | 'Dinner' | 'Snack')[];
   nutrition: {
     calories: number;
     protein: number;

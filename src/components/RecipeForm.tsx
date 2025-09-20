@@ -10,7 +10,8 @@ interface RecipeFormProps {
 
 export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: ''
+    name: '',
+    mealTypes: [] as ('Breakfast' | 'Lunch' | 'Dinner' | 'Snack')[]
   });
 
   const [ingredients, setIngredients] = useState<Ingredient[]>([
@@ -32,7 +33,8 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
   useEffect(() => {
     if (recipe) {
       setFormData({
-        name: recipe.name
+        name: recipe.name,
+        mealTypes: recipe.mealTypes || []
       });
       setIngredients(recipe.ingredients.length > 0 ? recipe.ingredients : [
         { id: '1', name: '', amount: 1, unit: 'cup', category: 'Pantry' }
@@ -61,6 +63,15 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
       i === index ? { ...ingredient, [field]: value } : ingredient
     );
     setIngredients(updated);
+  };
+
+  const toggleMealType = (mealType: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack') => {
+    setFormData(prev => ({
+      ...prev,
+      mealTypes: prev.mealTypes.includes(mealType)
+        ? prev.mealTypes.filter(type => type !== mealType)
+        : [...prev.mealTypes, mealType]
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -95,7 +106,8 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
         carbs: 0,
         fat: 0,
         fiber: 0
-      }
+      },
+      mealTypes: formData.mealTypes
     };
 
     onSave(savedRecipe);
@@ -130,6 +142,45 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSave, onCancel
               placeholder="Enter recipe name..."
               required
             />
+          </div>
+
+          {/* Meal Type Labels */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Meal Type Labels
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {(['Breakfast', 'Lunch', 'Dinner', 'Snack'] as const).map(mealType => {
+                const isSelected = formData.mealTypes.includes(mealType);
+                const colorClasses = {
+                  Breakfast: isSelected ? 'bg-orange-100 border-orange-300 text-orange-800' : 'bg-white border-gray-300 text-gray-700 hover:bg-orange-50',
+                  Lunch: isSelected ? 'bg-green-100 border-green-300 text-green-800' : 'bg-white border-gray-300 text-gray-700 hover:bg-green-50',
+                  Dinner: isSelected ? 'bg-purple-100 border-purple-300 text-purple-800' : 'bg-white border-gray-300 text-gray-700 hover:bg-purple-50',
+                  Snack: isSelected ? 'bg-yellow-100 border-yellow-300 text-yellow-800' : 'bg-white border-gray-300 text-gray-700 hover:bg-yellow-50'
+                };
+                const icons = {
+                  Breakfast: '🌅',
+                  Lunch: '🍽️',
+                  Dinner: '🌙',
+                  Snack: '🍎'
+                };
+                
+                return (
+                  <button
+                    key={mealType}
+                    type="button"
+                    onClick={() => toggleMealType(mealType)}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg transition-colors font-medium text-sm ${colorClasses[mealType]}`}
+                  >
+                    <span>{icons[mealType]}</span>
+                    <span>{mealType}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Select one or more meal types for this recipe
+            </p>
           </div>
 
           {/* Ingredients Section */}

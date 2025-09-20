@@ -150,6 +150,7 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
           'Follow traditional cooking methods for this dish',
           'Cook until done and serve hot'
         ],
+        mealTypes: [getMealCategory(mealType)],
         nutrition: {
           calories: 0,
           protein: 0,

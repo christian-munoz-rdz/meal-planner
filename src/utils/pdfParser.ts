@@ -102,6 +102,7 @@ const parseMealPlanText = (text: string): { meals: MealSlot[], recipes: Recipe[]
           image: '',
           ingredients: recipeData.ingredients,
           instructions: recipeData.instructions,
+          mealTypes: [getMealCategory(currentMealType)],
           nutrition: {
             calories: 0,
             protein: 0,
