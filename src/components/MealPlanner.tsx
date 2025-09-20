@@ -76,7 +76,25 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
   const filteredRecipes = allRecipes.filter(recipe => {
     const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          recipe.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'All' || recipe.category === filterCategory;
+    
+    // Enhanced category filtering to include meal types
+    let matchesCategory = false;
+    if (filterCategory === 'All') {
+      matchesCategory = true;
+    } else if (filterCategory === 'Breakfast' || filterCategory === 'Lunch' || filterCategory === 'Dinner' || filterCategory === 'Snacks') {
+      // Check if recipe has meal types that match the filter
+      const filterMealType = filterCategory === 'Snacks' ? 'Snack' : filterCategory;
+      matchesCategory = recipe.mealTypes && recipe.mealTypes.includes(filterMealType as any);
+      
+      // Fallback to category if no meal types are defined
+      if (!matchesCategory && (!recipe.mealTypes || recipe.mealTypes.length === 0)) {
+        matchesCategory = recipe.category === filterMealType;
+      }
+    } else {
+      // For other categories, match by recipe category
+      matchesCategory = recipe.category === filterCategory;
+    }
+    
     return matchesSearch && matchesCategory;
   });
 
@@ -309,7 +327,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
             <option value="Breakfast">Breakfast</option>
             <option value="Lunch">Lunch</option>
             <option value="Dinner">Dinner</option>
-            <option value="Snack">Snacks</option>
+            <option value="Snacks">Snacks</option>
           </select>
         </div>
 
@@ -778,6 +796,32 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                     </div>
                     <div className="text-xs text-gray-500">fiber</div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Meal Type Labels */}
+            {hoveredMeal.recipe.mealTypes && hoveredMeal.recipe.mealTypes.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <h5 className="text-xs font-medium text-gray-700 mb-2">Meal Types:</h5>
+                <div className="flex flex-wrap gap-1">
+                  {hoveredMeal.recipe.mealTypes.map(mealType => (
+                    <span 
+                      key={mealType}
+                      className={`text-xs px-2 py-1 rounded font-medium ${
+                        mealType === 'Breakfast' ? 'bg-orange-100 text-orange-800' :
+                        mealType === 'Lunch' ? 'bg-green-100 text-green-800' :
+                        mealType === 'Dinner' ? 'bg-purple-100 text-purple-800' :
+                        mealType === 'Snack' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {mealType === 'Breakfast' ? '🌅' :
+                       mealType === 'Lunch' ? '🍽️' :
+                       mealType === 'Dinner' ? '🌙' :
+                       mealType === 'Snack' ? '🍎' : '🍴'} {mealType}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}
