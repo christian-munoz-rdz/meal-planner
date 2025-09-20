@@ -365,9 +365,6 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                 {/* Bottom section with category and action buttons */}
                 <div className="mt-auto pt-3 flex items-center justify-between">
                   <div className="flex items-center gap-1 flex-wrap">
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
-                      {recipe.category}
-                    </span>
                     {recipe.mealTypes && recipe.mealTypes.length > 0 ? (
                       recipe.mealTypes.map(mealType => (
                         <span key={mealType} className={`px-2 py-0.5 rounded text-xs font-medium ${
