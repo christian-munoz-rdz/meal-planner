@@ -4,6 +4,7 @@ import { Recipe, MealSlot, Ingredient } from '../types';
 export const parseCSVMealPlan = async (file: File): Promise<{ meals: MealSlot[], recipes: Recipe[] }> => {
   try {
     const text = await file.text();
+    console.log('CSV Content:', text.substring(0, 500)); // Debug log
     return parseMealPlanCSV(text);
   } catch (error) {
     console.error('Error parsing CSV:', error);
@@ -16,63 +17,48 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
   const meals: MealSlot[] = [];
   const recipes: Recipe[] = [];
 
-  // Spanish to English day mapping
+  // Day mapping - English only since your CSV uses English days
   const dayMapping: { [key: string]: string } = {
-    'domingo': 'Sunday',
     'monday': 'Monday',
     'tuesday': 'Tuesday', 
     'wednesday': 'Wednesday',
     'thursday': 'Thursday',
     'friday': 'Friday',
     'saturday': 'Saturday',
-    'lunes': 'Monday', 
-    'martes': 'Tuesday',
-    'miércoles': 'Wednesday',
-    'miercoles': 'Wednesday',
-    'jueves': 'Thursday',
-    'viernes': 'Friday',
-    'sábado': 'Saturday',
-    'sabado': 'Saturday'
+    'sunday': 'Sunday'
   };
 
-  // Spanish to English meal type mapping
+  // Meal type mapping - handle your specific format
   const mealTypeMapping: { [key: string]: string } = {
     'breakfast': 'Breakfast',
     'snack m': 'Morning Snack',
     'lunch': 'Lunch', 
     'snack v': 'Afternoon Snack',
-    'dinner': 'Dinner',
-    'desayuno': 'Breakfast',
-    'colación m': 'Morning Snack',
-    'colacion m': 'Morning Snack',
-    'comida': 'Lunch',
-    'colación v': 'Afternoon Snack',
-    'colacion v': 'Afternoon Snack',
-    'cena': 'Dinner'
+    'dinner': 'Dinner'
   };
 
-  // Parse CSV content - normalized format
+  // Parse CSV content
   const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
   if (lines.length < 2) {
     throw new Error('CSV file must contain at least a header row and one data row.');
   }
 
-  // Parse header - expect: Día, Tiempo, Ingrediente, Porción
+  // Parse header
   const header = parseCSVRow(lines[0]);
-  const expectedHeaders = ['día', 'tiempo', 'ingrediente', 'porción'];
-  const normalizedHeader = header.map(h => h.toLowerCase().trim());
+  console.log('Header:', header); // Debug log
   
-  // Validate header format
-  if (!expectedHeaders.every(expected => normalizedHeader.includes(expected))) {
-    throw new Error('CSV must have columns: Día, Tiempo, Ingrediente, Porción');
-  }
+  // Find column indices (case insensitive)
+  const dayIndex = header.findIndex(h => h.toLowerCase().includes('día') || h.toLowerCase().includes('dia'));
+  const timeIndex = header.findIndex(h => h.toLowerCase().includes('tiempo') || h.toLowerCase().includes('time'));
+  const ingredientIndex = header.findIndex(h => h.toLowerCase().includes('ingrediente') || h.toLowerCase().includes('ingredient'));
+  const portionIndex = header.findIndex(h => h.toLowerCase().includes('porción') || h.toLowerCase().includes('porcion') || h.toLowerCase().includes('portion'));
 
-  // Get column indices
-  const dayIndex = normalizedHeader.indexOf('día');
-  const timeIndex = normalizedHeader.indexOf('tiempo');
-  const ingredientIndex = normalizedHeader.indexOf('ingrediente');
-  const portionIndex = normalizedHeader.indexOf('porción');
+  console.log('Column indices:', { dayIndex, timeIndex, ingredientIndex, portionIndex }); // Debug log
+
+  if (dayIndex === -1 || timeIndex === -1 || ingredientIndex === -1 || portionIndex === -1) {
+    throw new Error('CSV must have columns for Day, Time, Ingredient, and Portion');
+  }
 
   // Group ingredients by day and meal type
   const mealGroups: { [key: string]: { [key: string]: Ingredient[] } } = {};
@@ -83,21 +69,30 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
     
     if (row.length === 0) continue;
     
-    const daySpanish = row[dayIndex]?.toLowerCase().trim();
-    const mealTypeSpanish = row[timeIndex]?.toLowerCase().trim();
+    const dayRaw = row[dayIndex]?.toLowerCase().trim();
+    const mealTypeRaw = row[timeIndex]?.toLowerCase().trim();
     const ingredientName = row[ingredientIndex]?.trim();
     const portion = row[portionIndex]?.trim();
     
-    const dayEnglish = dayMapping[daySpanish];
-    const mealTypeEnglish = mealTypeMapping[mealTypeSpanish];
+    console.log(`Row ${i}:`, { dayRaw, mealTypeRaw, ingredientName, portion }); // Debug log
     
-    if (!dayEnglish || !mealTypeEnglish || !ingredientName) continue;
+    const dayEnglish = dayMapping[dayRaw];
+    const mealTypeEnglish = mealTypeMapping[mealTypeRaw];
     
-    // Skip ingredients with 'nan' portion or empty values
-    if (!portion || portion.toLowerCase() === 'nan') continue;
+    if (!dayEnglish || !mealTypeEnglish || !ingredientName) {
+      console.log(`Skipping row ${i}: missing data`, { dayEnglish, mealTypeEnglish, ingredientName });
+      continue;
+    }
+    
+    // Skip ingredients with empty portions
+    if (!portion || portion.toLowerCase() === 'nan') {
+      console.log(`Skipping ingredient with no portion: ${ingredientName}`);
+      continue;
+    }
 
     // Parse portion to get amount and unit
     const { amount, unit } = parsePortion(portion);
+    console.log(`Parsed portion for ${ingredientName}:`, { amount, unit }); // Debug log
     
     // Create ingredient
     const ingredient: Ingredient = {
@@ -109,7 +104,6 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
     };
 
     // Group ingredients by day and meal type
-    const mealKey = `${dayEnglish}-${mealTypeEnglish}`;
     if (!mealGroups[dayEnglish]) {
       mealGroups[dayEnglish] = {};
     }
@@ -119,25 +113,22 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
     mealGroups[dayEnglish][mealTypeEnglish].push(ingredient);
   }
 
+  console.log('Meal groups:', mealGroups); // Debug log
+
   // Create recipes and meals from grouped ingredients
   Object.entries(mealGroups).forEach(([day, mealTypes]) => {
     Object.entries(mealTypes).forEach(([mealType, ingredients]) => {
       if (ingredients.length === 0) return;
 
       // Generate recipe name from main ingredients
-      const mainIngredients = ingredients.slice(0, 2).map(ing => ing.name);
-      const recipeName = mainIngredients.join(' and ');
+      const mainIngredients = ingredients.slice(0, 3).map(ing => ing.name);
+      const recipeName = mainIngredients.join(', ');
       
-      // Create recipe description from ingredients
-      const description = ingredients.map(ing => 
-        `${ing.amount} ${ing.unit} ${ing.name}`
-      ).join(', ');
-
       const recipeId = `imported-csv-${Date.now()}-${Math.random()}`;
       const recipe: Recipe = {
         id: recipeId,
         name: recipeName.charAt(0).toUpperCase() + recipeName.slice(1),
-        description: description,
+        description: `Imported meal with ${ingredients.length} ingredients`,
         cookTime: 30,
         servings: 1,
         difficulty: 'Medium' as const,
@@ -175,6 +166,7 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
     });
   });
   
+  console.log('Final results:', { mealsCount: meals.length, recipesCount: recipes.length }); // Debug log
   return { meals, recipes };
 };
 
@@ -184,19 +176,29 @@ const parsePortion = (portion: string): { amount: number; unit: string } => {
     return { amount: 1, unit: 'piece' };
   }
 
-  // Try to extract number and unit from portion
-  const match = portion.match(/^(\d+(?:\.\d+)?|\d+\/\d+)\s*(.*)$/);
-  
-  if (match) {
-    let amount = parseFloat(match[1]);
-    
-    // Handle fractions like 1/2
-    if (match[1].includes('/')) {
-      const [num, den] = match[1].split('/');
-      amount = parseFloat(num) / parseFloat(den);
-    }
-    
-    const unit = normalizeUnit(match[2].trim() || 'piece');
+  // Handle complex fractions like "0.5/2tza"
+  const complexFractionMatch = portion.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+)\s*(.*)$/);
+  if (complexFractionMatch) {
+    const numerator = parseFloat(complexFractionMatch[1]);
+    const denominator = parseFloat(complexFractionMatch[2]);
+    const unit = normalizeUnit(complexFractionMatch[3].trim() || 'piece');
+    return { amount: numerator / denominator, unit };
+  }
+
+  // Handle simple fractions like "1/2"
+  const simpleFractionMatch = portion.match(/^(\d+)\s*\/\s*(\d+)\s*(.*)$/);
+  if (simpleFractionMatch) {
+    const numerator = parseFloat(simpleFractionMatch[1]);
+    const denominator = parseFloat(simpleFractionMatch[2]);
+    const unit = normalizeUnit(simpleFractionMatch[3].trim() || 'piece');
+    return { amount: numerator / denominator, unit };
+  }
+
+  // Handle decimal numbers with units like "150g" or "3piece"
+  const numberMatch = portion.match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
+  if (numberMatch) {
+    const amount = parseFloat(numberMatch[1]);
+    const unit = normalizeUnit(numberMatch[2].trim() || 'piece');
     return { amount, unit };
   }
   
@@ -204,7 +206,7 @@ const parsePortion = (portion: string): { amount: number; unit: string } => {
   return { amount: 1, unit: normalizeUnit(portion) };
 };
 
-// Parse a single CSV row, handling quoted fields with commas and newlines
+// Parse a single CSV row, handling quoted fields with commas
 const parseCSVRow = (row: string): string[] => {
   const result: string[] = [];
   let current = '';
@@ -241,7 +243,7 @@ const parseCSVRow = (row: string): string[] => {
   return result;
 };
 
-// Normalize units to English
+// Normalize units to standard format
 const normalizeUnit = (unit: string): string => {
   const unitMap: { [key: string]: string } = {
     'g': 'g',
@@ -257,6 +259,7 @@ const normalizeUnit = (unit: string): string => {
     'litro': 'l',
     'tza': 'cup',
     'tazas': 'cup',
+    'cup': 'cup',
     'cdta': 'tsp',
     'cucharadita': 'tsp',
     'cda': 'tbsp',
@@ -266,22 +269,24 @@ const normalizeUnit = (unit: string): string => {
     'pza': 'piece',
     'pieza': 'piece',
     'piezas': 'piece',
+    'piece': 'piece',
     'lata': 'can',
     'latas': 'can',
+    'can': 'can',
     'rbn': 'slice',
     'rebanada': 'slice',
     'rebanadas': 'slice',
-    'lata': 'can',
-    'latas': 'can',
+    'slice': 'slice',
     'mitad': 'half',
     'mitades': 'half',
+    'half': 'half',
     '': 'piece'
   };
   
   return unitMap[unit.toLowerCase()] || unit;
 };
 
-// Categorize ingredients
+// Categorize ingredients based on name
 const categorizeIngredient = (name: string): any => {
   const lowerName = name.toLowerCase();
   
