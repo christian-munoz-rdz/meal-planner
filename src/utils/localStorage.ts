@@ -68,7 +68,7 @@ export const exportShoppingList = (shoppingList: ShoppingListItem[]): void => {
 
 export const exportMealPlanCSV = (meals: MealSlot[]): void => {
   // Create CSV content in normalized format
-  const csvRows = ['Día,Tiempo,Ingrediente,Porción,RecipeId,RecipeName'];
+  const csvRows = ['Day,MealType,Ingredient,Portion,RecipeId,RecipeName'];
   
   // Day mapping for consistent output
   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];

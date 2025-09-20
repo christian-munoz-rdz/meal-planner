@@ -49,17 +49,32 @@ const parseMealPlanCSV = (csvText: string): { meals: MealSlot[], recipes: Recipe
   console.log('Header:', header); // Debug log
   
   // Find column indices (case insensitive)
-  const dayIndex = header.findIndex(h => h.toLowerCase().includes('día') || h.toLowerCase().includes('dia'));
-  const timeIndex = header.findIndex(h => h.toLowerCase().includes('tiempo') || h.toLowerCase().includes('time'));
-  const ingredientIndex = header.findIndex(h => h.toLowerCase().includes('ingrediente') || h.toLowerCase().includes('ingredient'));
-  const portionIndex = header.findIndex(h => h.toLowerCase().includes('porción') || h.toLowerCase().includes('porcion') || h.toLowerCase().includes('portion'));
+  const dayIndex = header.findIndex(h => 
+    h.toLowerCase().includes('day') || 
+    h.toLowerCase().includes('día') || 
+    h.toLowerCase().includes('dia')
+  );
+  const timeIndex = header.findIndex(h => 
+    h.toLowerCase().includes('mealtype') || 
+    h.toLowerCase().includes('tiempo') || 
+    h.toLowerCase().includes('time')
+  );
+  const ingredientIndex = header.findIndex(h => 
+    h.toLowerCase().includes('ingredient') || 
+    h.toLowerCase().includes('ingrediente')
+  );
+  const portionIndex = header.findIndex(h => 
+    h.toLowerCase().includes('portion') || 
+    h.toLowerCase().includes('porción') || 
+    h.toLowerCase().includes('porcion')
+  );
   const recipeIdIndex = header.findIndex(h => h.toLowerCase().includes('recipeid'));
   const recipeNameIndex = header.findIndex(h => h.toLowerCase().includes('recipename'));
 
   console.log('Column indices:', { dayIndex, timeIndex, ingredientIndex, portionIndex, recipeIdIndex, recipeNameIndex }); // Debug log
 
   if (dayIndex === -1 || timeIndex === -1 || ingredientIndex === -1 || portionIndex === -1) {
-    throw new Error('CSV must have columns for Day, Time, Ingredient, and Portion');
+    throw new Error('CSV must have columns for Day (or Día), MealType (or Tiempo), Ingredient (or Ingrediente), and Portion (or Porción)');
   }
 
   // Group ingredients by day and meal type
