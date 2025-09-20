@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, Utensils, Plus, Trash2, Edit, ChefHat } from 'lucide-react';
+import { Calendar, Clock, Users, Utensils, Plus, Trash2, Edit, ChefHat, Download } from 'lucide-react';
 import { MealSlot, Recipe } from '../types';
 import { getDaysOfWeek, getMealTypes } from '../utils/mealPlanUtils';
 import { sampleRecipes } from '../data/sampleRecipes';
 import { RecipeForm } from './RecipeForm';
 import { RecipeDetailsModal } from './RecipeDetailsModal';
-import { saveCustomRecipes, loadCustomRecipes } from '../utils/localStorage';
+import { saveCustomRecipes, loadCustomRecipes, exportMealPlanCSV } from '../utils/localStorage';
 
 interface MealPlannerProps {
   meals: MealSlot[];
   onMealsUpdate: (meals: MealSlot[]) => void;
   onRecipeUpdate: () => void;
+  recipeToEdit?: Recipe | null;
+  onRecipeEditComplete?: () => void;
 }
 
-export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, onRecipeUpdate }) => {
+export const MealPlanner: React.FC<MealPlannerProps> = ({ 
+  meals, 
+  onMealsUpdate, 
+  onRecipeUpdate, 
+  recipeToEdit: externalRecipeToEdit,
+  onRecipeEditComplete 
+}) => {
   const [draggedRecipe, setDraggedRecipe] = useState<Recipe | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('All');
@@ -31,6 +39,14 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
   useEffect(() => {
     setCustomRecipes(loadCustomRecipes());
   }, []);
+
+  // Handle external recipe edit requests (from shopping list)
+  useEffect(() => {
+    if (externalRecipeToEdit) {
+      setRecipeToEdit(externalRecipeToEdit);
+      setShowRecipeForm(true);
+    }
+  }, [externalRecipeToEdit]);
 
   // Update meals when recipes change
   const updateMealsWithNewRecipe = (updatedRecipe: Recipe) => {
@@ -80,6 +96,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
     
     setShowRecipeForm(false);
     setRecipeToEdit(null);
+    onRecipeEditComplete?.();
   };
 
   const handleDeleteRecipe = (recipe: Recipe) => {
@@ -193,6 +210,7 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
             <Utensils className="h-5 w-5 text-blue-600" />
             Recipe Library ({allRecipes.length} recipes)
           </h3>
+          <div className="flex items-center gap-3">
           <button
             onClick={() => setShowRecipeForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -201,12 +219,21 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({ meals, onMealsUpdate, 
             Create Recipe
           </button>
           <button
+            onClick={() => exportMealPlanCSV(meals)}
+            disabled={!meals.some(meal => meal.recipe)}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </button>
+          <button
             onClick={() => setShowClearConfirmation(true)}
             className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
             <Trash2 className="h-4 w-4" />
             Clear All
           </button>
+          </div>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 mb-4">

@@ -1,16 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { ShoppingCart, Check, Download, ChevronDown, ChevronRight, Package } from 'lucide-react';
+import { ShoppingCart, Check, Download, ChevronDown, ChevronRight, Package, Edit } from 'lucide-react';
 import { ShoppingListItem, GroceryCategory } from '../types';
 import { exportShoppingList } from '../utils/localStorage';
+import { Recipe } from '../types';
 
 interface ShoppingListProps {
   shoppingList: ShoppingListItem[];
   onUpdateShoppingList: (list: ShoppingListItem[]) => void;
+  customRecipes: Recipe[];
+  onEditRecipe: (recipe: Recipe) => void;
 }
 
 export const ShoppingList: React.FC<ShoppingListProps> = ({ 
   shoppingList, 
-  onUpdateShoppingList 
+  onUpdateShoppingList,
+  customRecipes,
+  onEditRecipe
 }) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<GroceryCategory>>(
     new Set(['Produce', 'Dairy & Eggs', 'Meat & Seafood', 'Pantry'])
@@ -151,8 +156,20 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
                               </span>
                             </div>
                             {item.recipeNames.length > 0 && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                For: {item.recipeNames.join(', ')}
+                              <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                                <span>For: {item.recipeNames.join(', ')}</span>
+                                {item.recipeNames.length === 1 && (() => {
+                                  const recipe = customRecipes.find(r => r.name === item.recipeNames[0]);
+                                  return recipe ? (
+                                    <button
+                                      onClick={() => onEditRecipe(recipe)}
+                                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                                      title="Edit recipe"
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </button>
+                                  ) : null;
+                                })()}
                               </div>
                             )}
                           </div>

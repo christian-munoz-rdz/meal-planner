@@ -15,6 +15,7 @@ function App() {
   const [savedPlans, setSavedPlans] = useState<MealPlan[]>([]);
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
   const [recipeUpdateTrigger, setRecipeUpdateTrigger] = useState(0);
+  const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
 
   // Initialize empty meal slots
   useEffect(() => {
@@ -187,13 +188,24 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'planner' && (
-          <MealPlanner meals={meals} onMealsUpdate={setMeals} onRecipeUpdate={handleRecipeUpdate} />
+          <MealPlanner 
+            meals={meals} 
+            onMealsUpdate={setMeals} 
+            onRecipeUpdate={handleRecipeUpdate}
+            recipeToEdit={recipeToEdit}
+            onRecipeEditComplete={() => setRecipeToEdit(null)}
+          />
         )}
         
         {activeTab === 'shopping' && (
           <ShoppingList 
             shoppingList={shoppingList} 
-            onUpdateShoppingList={handleUpdateShoppingList} 
+            onUpdateShoppingList={handleUpdateShoppingList}
+            customRecipes={loadCustomRecipes()}
+            onEditRecipe={(recipe) => {
+              setRecipeToEdit(recipe);
+              setActiveTab('planner');
+            }}
           />
         )}
         
