@@ -142,20 +142,16 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
     if (!draggedRecipe) return;
 
     const slotId = `${day}-${mealType}`;
-    
-    // Check if we're moving a recipe from another slot
-    const sourceSlot = meals.find(meal => meal.recipe?.id === draggedRecipe.id);
-    
+
+    // Simply assign the recipe to the target slot without removing from source
     const updatedMeals = meals.map(meal => 
       meal.id === slotId 
         ? { 
             ...meal, 
             recipe: draggedRecipe, 
-            servings: sourceSlot?.servings || draggedRecipe.servings 
+            servings: draggedRecipe.servings 
           }
-        : sourceSlot && meal.id === sourceSlot.id
-          ? { ...meal, recipe: undefined, servings: undefined }
-          : meal
+        : meal
     );
 
     onMealsUpdate(updatedMeals);
