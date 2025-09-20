@@ -205,34 +205,38 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
     <div className="space-y-6">
       {/* Recipe Search and Filter */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <Utensils className="h-5 w-5 text-blue-600" />
-            Recipe Library ({allRecipes.length} recipes)
+            <span className="hidden sm:inline">Recipe Library ({allRecipes.length} recipes)</span>
+            <span className="sm:hidden">Recipes ({allRecipes.length})</span>
           </h3>
-          <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowRecipeForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Create Recipe
-          </button>
-          <button
-            onClick={() => exportMealPlanCSV(meals)}
-            disabled={!meals.some(meal => meal.recipe)}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            Export CSV
-          </button>
-          <button
-            onClick={() => setShowClearConfirmation(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-            Clear All
-          </button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setShowRecipeForm(true)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Recipe</span>
+              <span className="sm:hidden">Create</span>
+            </button>
+            <button
+              onClick={() => exportMealPlanCSV(meals)}
+              disabled={!meals.some(meal => meal.recipe)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export CSV</span>
+              <span className="sm:hidden">Export</span>
+            </button>
+            <button
+              onClick={() => setShowClearConfirmation(true)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Clear All</span>
+              <span className="sm:hidden">Clear</span>
+            </button>
           </div>
         </div>
         
