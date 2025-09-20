@@ -493,7 +493,10 @@ export const MealPlanner: React.FC<MealPlannerProps> = ({
                           <div 
                             className="bg-blue-50 rounded-lg p-2 h-full border border-blue-200 flex flex-col cursor-grab active:cursor-grabbing"
                             draggable
-                            onDragStart={() => handleDragStart(meal.recipe!)}
+                            onDragStart={() => {
+                              handleDragStart(meal.recipe!);
+                              setDragSource('meal');
+                            }}
                           >
                             <div className="flex justify-between items-start mb-2 min-h-0">
                               <h5 
